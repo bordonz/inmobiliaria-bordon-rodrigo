@@ -1,9 +1,8 @@
 namespace inmobiliaria_airbnb.Models
 {
-    public interface IRepositorioPropietario<Propietario>
+    public interface IRepositorioPropietario : IRepositorio<Propietario>
     {
-        Propietario? Alta(Propietario p);
-        Propietario? Baja(int id);
-        Propietario? Modificacion(Propietario p);
+        Propietario? ObtenerPorEmail(String email);
+        IList<Propietario> BuscarPorNombre(string nombre);
     }
 }

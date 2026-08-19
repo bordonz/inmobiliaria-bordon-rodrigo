@@ -12,13 +12,13 @@ namespace inmobiliaria_airbnb.Models
         public int Alta(Propietario p)
         {
             int res = -1;
-            using (MySqlConnection connection = new MySqlConnection(connectionString))
+            using (var connection = new MySqlConnection(connectionString))
             {
                 string sql = @"INSERT INTO Propietarios
                     (Nombre, Apellido, Dni, Telefono, Email, Clave)
                     Values (@nombre, @apellido, @dni, @telefono, @email, @clave);
                     SELECT LAST_INSERT_ID();";//devuelve el id insertado (LAST_INSERT_ID para mysql)
-                using (MySqlCommand command = new MySqlCommand(sql, connection))
+                using (var command = new MySqlCommand(sql, connection))
                 {
                     command.CommandType = CommandType.Text;
                     command.Parameters.AddWithValue("@nombre", p.Nombre);

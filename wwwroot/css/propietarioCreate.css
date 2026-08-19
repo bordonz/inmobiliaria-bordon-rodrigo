@@ -1,0 +1,73 @@
+/* Contenedor principal */
+.row {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+/* Caja del formulario */
+.col-md-4 {
+    background: #ffffff;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+/* Título */
+h4 {
+    color: #007bff;
+    font-weight: bold;
+    margin-bottom: 15px;
+}
+
+/* Inputs */
+.form-control {
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    padding: 10px;
+    transition: border-color 0.3s;
+}
+
+.form-control:focus {
+    border-color: #007bff;
+    outline: none;
+    box-shadow: 0 0 6px rgba(0,123,255,0.3);
+}
+
+/* Labels */
+.control-label {
+    font-weight: 600;
+    margin-bottom: 5px;
+    display: block;
+}
+
+/* Validaciones */
+.text-danger {
+    font-size: 0.9em;
+    margin-top: 4px;
+}
+
+/* Botón */
+.btn-primary {
+    background-color: #28a745;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 6px;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+
+.btn-primary:hover {
+    background-color: #218838;
+}
+
+/* Link de regreso */
+a {
+    color: #007bff;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+a:hover {
+    text-decoration: underline;
+}
