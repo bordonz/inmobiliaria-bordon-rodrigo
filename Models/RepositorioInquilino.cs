@@ -40,7 +40,7 @@ namespace inmobiliaria_airbnb.Models
             int res = -1;
             using (var connection = new MySqlConnection(connectionString))
             {
-                string sql = @$"DELETE FROM Inquilinos WHERE {nameof(Inquilino.IdInquilino)} = @id";
+                string sql = @$"DELETE FROM Inquilinos WHERE id_inquilino = @id";
                 using (var command = new MySqlCommand(sql, connection))
                 {
                     command.CommandType = CommandType.Text;
@@ -60,7 +60,7 @@ namespace inmobiliaria_airbnb.Models
             {
                 string sql = @$"UPDATE Inquilinos
                     SET Nombre=@nombre, Apellido=@apellido, Dni=@dni, Telefono=@telefono, Email=@email
-                    WHERE {nameof(Inquilino.IdInquilino)} = @id";
+                    WHERE id_inquilino = @id";
                 using (var command = new MySqlCommand(sql, connection))
                 {
                     command.CommandType = CommandType.Text;
@@ -78,6 +78,95 @@ namespace inmobiliaria_airbnb.Models
             }
             return res;
         }
+        public IList<Inquilino> ObtenerLista(int paginaNro = 1, int tamPagina = 10)
+		{
+			IList<Inquilino> res = new List<Inquilino>();
+			using (MySqlConnection connection = new MySqlConnection(connectionString))
+			{
+				string sql = @"SELECT id_inquilino, nombre, apellido, dni, telefono, email
+					FROM Inquilinos
+					ORDER BY id_inquilino
+					LIMIT @tamPagina OFFSET @offset";
+				using (MySqlCommand command = new MySqlCommand(sql, connection))
+				{
+					command.CommandType = CommandType.Text;
+                    command.Parameters.AddWithValue("@tamPagina", tamPagina);
+                    command.Parameters.AddWithValue("@offset", (paginaNro - 1) * tamPagina);
+					connection.Open();
+					var reader = command.ExecuteReader();
+					while (reader.Read())
+					{
+						Inquilino i = new Inquilino
+						{
+							IdInquilino = reader.GetInt32("id_inquilino"),
+							Nombre = reader.GetString("nombre"),
+							Apellido = reader.GetString("apellido"),
+							Dni = reader.GetInt32("dni"),
+							Telefono = reader.GetString("telefono"),
+							Email = reader.GetString("email"),
+						};
+						res.Add(i);
+					}
+					connection.Close();
+				}
+			}
+			return res;
+		}
+
+        public int ObtenerCantidad()
+		{
+			int res = 0;
+			using (MySqlConnection connection = new MySqlConnection(connectionString))
+			{
+				string sql = @"
+					SELECT COUNT(id_inquilino)
+					FROM Inquilinos";
+				using (MySqlCommand command = new MySqlCommand(sql, connection))
+				{
+					command.CommandType = CommandType.Text;
+					connection.Open();
+					var reader = command.ExecuteReader();
+					if (reader.Read())
+					{
+						res = reader.GetInt32(0);
+					}
+					connection.Close();
+				}
+			}
+			return res;
+		}
+
+        public Inquilino? ObtenerPorId(int id)
+		{
+			Inquilino? i = null;
+			using (MySqlConnection connection = new MySqlConnection(connectionString))
+			{
+				string sql = @"SELECT id_inquilino, nombre, apellido, dni, telefono, email
+					FROM Inquilinos
+					WHERE id_inquilino=@id";
+				using (MySqlCommand command = new MySqlCommand(sql, connection))
+				{
+					command.Parameters.Add("@id", MySqlDbType.Int32).Value = id;
+					command.CommandType = CommandType.Text;
+					connection.Open();
+					var reader = command.ExecuteReader();
+					if (reader.Read())
+					{
+						i = new Inquilino
+						{
+							IdInquilino = reader.GetInt32("id_inquilino"),
+							Nombre = reader.GetString("nombre"),
+							Apellido = reader.GetString("apellido"),
+							Dni = reader.GetInt32("dni"),
+							Telefono = reader.GetString("telefono"),
+							Email = reader.GetString("email"),
+						};
+					}
+					connection.Close();
+				}
+			}
+			return i;
+		}
 
         public List<Inquilino> Consultar()
         {

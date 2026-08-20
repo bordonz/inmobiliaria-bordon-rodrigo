@@ -2,6 +2,10 @@ namespace inmobiliaria_airbnb.Models
 {
     public interface IRepositorioInquilino : IRepositorio<Inquilino>
     {
-        //Inquilino? ReadAirbnb(Inquilino i);
+        IList<Inquilino> ObtenerLista(int pagina, int tamaño);
+
+        int ObtenerCantidad();
+
+        Inquilino? ObtenerPorId(int id);
     }
 }

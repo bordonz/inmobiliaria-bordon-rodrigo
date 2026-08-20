@@ -1,47 +1,45 @@
 using inmobiliaria_airbnb.Models;
-using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 using Microsoft.AspNetCore.Mvc;
 
 namespace inmobiliaria_airbnb.Controllers
 {
-    public class PropietariosController : Controller
+    public class InquilinosController : Controller
     {
-        private readonly IRepositorioPropietario repositorio;
+        private readonly IRepositorioInquilino repositorio;
         private readonly IConfiguration config;
-        private readonly ILogger<PropietariosController> logger;
-        public PropietariosController(IRepositorioPropietario repo, IConfiguration config, ILogger<PropietariosController> logger)
+        private readonly ILogger<InquilinosController> logger;
+
+        public InquilinosController(IRepositorioInquilino repo, IConfiguration config, ILogger<InquilinosController> logger)
         {
             this.repositorio = repo;
             this.config = config;
             this.logger = logger;
         }
 
-        // GET: Propietarios/Index
-		public ActionResult Index(int pagina=1)
-		{
-			try
-			{
-				var tamaño = 5;
-				var lista = repositorio.ObtenerLista(Math.Max(pagina, 1), tamaño);
-				ViewBag.Pagina = pagina;
-				var total = repositorio.ObtenerCantidad();
-				ViewBag.TotalPaginas = total % tamaño == 0 ? total / tamaño : total / tamaño + 1;
-				ViewBag.Id = TempData["Id"];
-				// TempData es para pasar datos entre acciones
-				// ViewBag/Data es para pasar datos del controlador a la vista
-				// Si viene alguno valor por el tempdata, lo paso al viewdata/viewbag
-				if (TempData.ContainsKey("Mensaje"))
+        //GET: Inquilinos/Index
+        public ActionResult Index(int pagina = 1)
+        {
+            try
+            {
+                var tamaño = 5;
+                var lista = repositorio.ObtenerLista(Math.Max(pagina, 1), tamaño);
+                ViewBag.Pagina = pagina;
+                var total = repositorio.ObtenerCantidad();
+                ViewBag.TotalPaginas = total % tamaño == 0 ? total / tamaño : total / tamaño + 1;
+                ViewBag.id = TempData["id"];
+
+                if (TempData.ContainsKey("Mensaje"))
 					ViewBag.Mensaje = TempData["Mensaje"];
 				return View(lista);
-			}
-			catch (Exception ex)
-			{// Poner breakpoints para detectar errores
-				logger.LogError(ex, "Error en Index de Propietarios");
-				throw;
-			}
-		}
+            }   
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error en Index de Inquilinos");
+                throw;
+            }
+        }
 
-        // GET: Propietarios/Create
+        // GET: Inquilinos/Create
 		public ActionResult Create()
 		{
 			try
@@ -49,29 +47,29 @@ namespace inmobiliaria_airbnb.Controllers
 				return View();
 			}
 			catch (Exception ex)
-			{//poner breakpoints para detectar errores
-				logger.LogError(ex, "Error en Create de Propietarios");
+			{
+				logger.LogError(ex, "Error en Create de Inquilinos");
 				throw;
 			}
 		}
         
-        // POST: Propietarios/Create
+        // POST: Inquilinos/Create
         [HttpPost]
-        public ActionResult Create(Propietario propietario)
+        public ActionResult Create(Inquilino inquilino)
         {
             try
             {
-                repositorio.Alta(propietario);
+                repositorio.Alta(inquilino);
                 return RedirectToAction(nameof(Index));
             }
             catch(Exception ex)
             {
-                logger.LogError(ex, "Error en Create de Propietarios");
+                logger.LogError(ex, "Error en Create de Inquilinos");
                 throw;
             }
         }
 
-        //GET: Propietarios/Edit
+        //GET: Inquilinos/Edit
         public ActionResult Edit(int id)
         {
             try
@@ -81,32 +79,32 @@ namespace inmobiliaria_airbnb.Controllers
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error en Create de Propietarios");
+                logger.LogError(ex, "Error en Edit de Inquilinos");
 				throw;
             }
         }
 
         [HttpPost]
-        public ActionResult Edit(int id, Propietario entidad)
+        public ActionResult Edit(int id, Inquilino entidad)
         {
             try
             {
-                var p = repositorio.ObtenerPorId(id);
-                if(p == null)
+                var i = repositorio.ObtenerPorId(id);
+                if(i == null)
                     return NotFound();
                     
-                p.Nombre = entidad.Nombre;
-				p.Apellido = entidad.Apellido;
-				p.Dni = entidad.Dni;
-				p.Email = entidad.Email;
-				p.Telefono = entidad.Telefono;
-				repositorio.Modificacion(p);
+                i.Nombre = entidad.Nombre;
+				i.Apellido = entidad.Apellido;
+				i.Dni = entidad.Dni;
+				i.Email = entidad.Email;
+				i.Telefono = entidad.Telefono;
+				repositorio.Modificacion(i);
 				TempData["Mensaje"] = "Datos guardados correctamente";
 				return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error en Edit de Propietarios");
+                logger.LogError(ex, "Error en Edit de Inquilinos");
 				throw;
             }
         }
@@ -127,7 +125,7 @@ namespace inmobiliaria_airbnb.Controllers
         }
 
         [HttpPost]
-        public ActionResult Delete(int id, Propietario entidad)
+        public ActionResult Delete(int id, Inquilino entidad)
         {
             try
             {

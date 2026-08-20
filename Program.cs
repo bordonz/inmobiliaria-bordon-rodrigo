@@ -5,6 +5,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<IRepositorioPropietario, RepositorioPropietario>();
+builder.Services.AddScoped<IRepositorioInquilino, RepositorioInquilino>();
 
 var app = builder.Build();
 
@@ -30,6 +31,12 @@ app.MapControllerRoute(
 app.MapControllerRoute(
     name: "propietarios",
     pattern: "propietarios/{action=Index}/{id?}",
+    defaults: new { controller = "Propietarios" }
+);
+
+app.MapControllerRoute(
+    name: "inquilinos",
+    pattern: "inquilinos/{action=Index}/{id?}",
     defaults: new { controller = "Propietarios" }
 );
 

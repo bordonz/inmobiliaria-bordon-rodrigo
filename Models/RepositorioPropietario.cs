@@ -145,7 +145,7 @@ namespace inmobiliaria_airbnb.Models
 			Propietario? p = null;
 			using (MySqlConnection connection = new MySqlConnection(connectionString))
 			{
-				string sql = @"SELECT Id_propietario, nombre, apellido, dni, telefono, email, clave 
+				string sql = @"SELECT id_propietario, nombre, apellido, dni, telefono, email, clave 
 					FROM Propietarios
 					WHERE id_propietario=@id";
 				using (MySqlCommand command = new MySqlCommand(sql, connection))
