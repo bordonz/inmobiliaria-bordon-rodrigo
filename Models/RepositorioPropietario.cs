@@ -81,9 +81,9 @@ namespace inmobiliaria_airbnb.Models
             return res;
         }
 
-        public IList<Propietario> ObtenerLista(int paginaNro = 1, int tamPagina = 10)
+        public List<Propietario> ObtenerLista(int paginaNro = 1, int tamPagina = 10)
 		{
-			IList<Propietario> res = new List<Propietario>();
+			List<Propietario> res = new List<Propietario>();
 			using (MySqlConnection connection = new MySqlConnection(connectionString))
 			{
 				string sql = @"SELECT id_propietario, nombre, apellido, dni, telefono, email, clave
@@ -187,10 +187,38 @@ namespace inmobiliaria_airbnb.Models
             return p;
         }
 
-        public IList<Propietario> BuscarPorNombre(string nombre)
+        public List<Propietario> BuscarPorNombre(string nombre)
         {
             List<Propietario> res = new List<Propietario>();
-
+            nombre = "%" + nombre + "%"; //TODO: Optimizar
+            using (MySqlConnection connection = new MySqlConnection(connectionString))
+            {
+                string sql = @"SELECT id_propietario, nombre, apellido, dni, telefono, email, clave
+                    FROM Propietarios
+                    WHERE nombre LIKE @nombre OR apellido LIKE @nombre";
+                using (MySqlCommand command = new MySqlCommand(sql, connection))
+                {
+                    command.Parameters.Add("@nombre", MySqlDbType.VarChar).Value = nombre;;
+                    command.CommandType = CommandType.Text;
+                    connection.Open();
+                    var reader = command.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        var p = new Propietario
+                        {    
+                            IdPropietario = reader.GetInt32("id_propietario"),
+                            Nombre = reader.GetString("nombre"),
+                            Apellido = reader.GetString("apellido"),
+                            Dni = reader.GetString("dni"),
+                            Telefono = reader.GetString("telefono"),
+                            Email = reader.GetString("email"),
+                            Clave = reader.GetString("clave"),
+                        };
+                        res.Add(p);
+                    }
+                    connection.Close();
+                }
+            }
             return res;
         }
     }

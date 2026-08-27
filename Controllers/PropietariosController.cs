@@ -27,9 +27,6 @@ namespace inmobiliaria_airbnb.Controllers
 				var total = repositorio.ObtenerCantidad();
 				ViewBag.TotalPaginas = total % tamaño == 0 ? total / tamaño : total / tamaño + 1;
 				ViewBag.Id = TempData["Id"];
-				// TempData es para pasar datos entre acciones
-				// ViewBag/Data es para pasar datos del controlador a la vista
-				// Si viene alguno valor por el tempdata, lo paso al viewdata/viewbag
 				if (TempData.ContainsKey("Mensaje"))
 					ViewBag.Mensaje = TempData["Mensaje"];
 				return View(lista);
@@ -140,6 +137,21 @@ namespace inmobiliaria_airbnb.Controllers
             {
                 logger.LogError(ex, "Error en Delete de Propietarios");
                 throw;
+            }
+        }
+
+        //GET: Propietarios/Buscar/5
+        [Route("[controller]/Buscar/{q}", Name = "Buscar")]
+        public IActionResult Buscar(string q)
+        {
+            try
+            {
+                var res = repositorio.BuscarPorNombre(q);
+                return Json( new { datos = res });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { error = ex.Message });
             }
         }
     }
