@@ -104,6 +104,7 @@ namespace inmobiliaria_airbnb.Controllers
                 i.PorcentajeReserva = inmueble.PorcentajeReserva;
                 i.Latitud = inmueble.Latitud;
                 i.Longitud = inmueble.Longitud;
+                i.Tipo = inmueble.Tipo;
                 i.PropietarioId = inmueble.PropietarioId;
                 i.Habilitado = inmueble.Habilitado;
                 repositorio.Modificacion(i);

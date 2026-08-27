@@ -17,8 +17,8 @@ namespace inmobiliaria_airbnb.Models
             using (var connection = new MySqlConnection(connectionString))
             {
                 string sql = @"INSERT INTO Inmuebles
-                    (direccion, cupo, precio_por_dia, porcentaje_reserva, latitud, longitud, propietario_id)
-                    VALUES (@direccion, @cupo, @precio_por_dia, @porcentaje_reserva, @latitud, @longitud, @propietario_id);
+                    (direccion, cupo, precio_por_dia, porcentaje_reserva, latitud, longitud, tipo, habilitado,propietario_id)
+                    VALUES (@direccion, @cupo, @precio_por_dia, @porcentaje_reserva, @latitud, @longitud, @tipo, @propietario_id, @habilitado);
                     SELECT LAST_INSERT_ID();";
 
                 using (var command = new MySqlCommand(sql, connection))
@@ -30,7 +30,9 @@ namespace inmobiliaria_airbnb.Models
                     command.Parameters.AddWithValue("@porcentaje_reserva", i.PorcentajeReserva);
                     command.Parameters.AddWithValue("@latitud", i.Latitud);
                     command.Parameters.AddWithValue("@longitud", i.Longitud);
+                    command.Parameters.AddWithValue("@tipo", i.Tipo);
                     command.Parameters.AddWithValue("@propietario_id", i.PropietarioId);
+                    command.Parameters.AddWithValue("@habilitado", i.Habilitado);
                     connection.Open();
                     res = Convert.ToInt32(command.ExecuteScalar());
                     i.IdInmueble = res;
@@ -63,7 +65,7 @@ namespace inmobiliaria_airbnb.Models
             {
                 string sql = @$"UPDATE Inmuebles
                     SET direccion=@direccion, cupo=@cupo, precio_por_dia=@precio_por_dia, porcentaje_reserva=@porcentaje_reserva,
-                        latitud=@latitud, longitud=@longitud, propietario_id=@propietario_id, habilitado=@habilitado
+                        latitud=@latitud, longitud=@longitud, tipo=@tipo, propietario_id=@propietario_id, habilitado=@habilitado
                     WHERE id_inmueble = @id";
                 using (var command = new MySqlCommand(sql, connection))
                 {
@@ -74,6 +76,7 @@ namespace inmobiliaria_airbnb.Models
                     command.Parameters.AddWithValue("@porcentaje_reserva", i.PorcentajeReserva);
                     command.Parameters.AddWithValue("@latitud", i.Latitud);
                     command.Parameters.AddWithValue("@longitud", i.Longitud);
+                    command.Parameters.AddWithValue("@tipo", i.Tipo);
                     command.Parameters.AddWithValue("@propietario_id", i.PropietarioId);
                     command.Parameters.AddWithValue("@habilitado", i.Habilitado);
                     command.Parameters.AddWithValue("@id", i.IdInmueble);
@@ -90,7 +93,7 @@ namespace inmobiliaria_airbnb.Models
             using (MySqlConnection connection = new MySqlConnection(connectionString))
             {
                 string sql = @"SELECT i.id_inmueble, i.direccion, i.cupo, i.precio_por_dia, i.porcentaje_reserva,
-                    i.latitud, i.longitud, i.propietario_id, i.habilitado,
+                    i.latitud, i.longitud, i.tipo, i.propietario_id, i.habilitado,
                     p.nombre, p.apellido
                     FROM inmuebles i
                     INNER JOIN propietarios p ON i.propietario_id = p.id_propietario
@@ -115,6 +118,7 @@ namespace inmobiliaria_airbnb.Models
                             PorcentajeReserva = reader.GetDecimal("porcentaje_reserva"),
                             Latitud = reader.GetDecimal("latitud"),
                             Longitud = reader.GetDecimal("longitud"),
+                            Tipo = reader.GetString("tipo"),
                             PropietarioId = reader.GetInt32("propietario_id"),
                             duenio = new Propietario
                             {
@@ -157,7 +161,7 @@ namespace inmobiliaria_airbnb.Models
             using(MySqlConnection connection = new MySqlConnection(connectionString))
             {
                 string sql = @"SELECT i.id_inmueble, i.direccion, i.cupo, i.precio_por_dia, i.porcentaje_reserva,
-                    i.latitud, i.longitud, i.propietario_id, i.habilitado,
+                    i.latitud, i.longitud, i.tipo, i.propietario_id, i.habilitado,
                     p.nombre, p.apellido
                     FROM Inmuebles i
                     INNER JOIN propietarios p ON i.propietario_id = p.id_propietario
@@ -179,6 +183,7 @@ namespace inmobiliaria_airbnb.Models
                             PorcentajeReserva = reader.GetDecimal("porcentaje_reserva"),
                             Latitud = reader.GetDecimal("latitud"),
                             Longitud = reader.GetDecimal("longitud"),
+                            Tipo = reader.GetString("tipo"),
                             PropietarioId = reader.GetInt32("propietario_id"),
                             Habilitado = reader.GetBoolean("habilitado"),
                             duenio = new Propietario

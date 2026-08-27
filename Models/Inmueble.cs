@@ -20,6 +20,8 @@ namespace inmobiliaria_airbnb.Models
         public decimal PorcentajeReserva  { get; set; }
 		public decimal Latitud { get; set; }
 		public decimal Longitud { get; set; }
+        [Required]
+        public string Tipo { get; set; }
         [Display(Name = "Dueño")]
         public int PropietarioId { get; set; }
         [ForeignKey(nameof(PropietarioId))]
