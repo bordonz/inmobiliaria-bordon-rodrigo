@@ -27,14 +27,13 @@ namespace inmobiliaria_airbnb.Controllers
                 var total = repositorio.ObtenerCantidad();
                 ViewBag.TotalPaginas = total % tamaño == 0 ? total / tamaño : total / tamaño + 1;
                 ViewBag.id = TempData["id"];
-
                 if (TempData.ContainsKey("Mensaje"))
 					ViewBag.Mensaje = TempData["Mensaje"];
 				return View(lista);
             }   
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error en Index de Inquilinos");
+                logger.LogError(ex, "Error en Index de inquilinos");
                 throw;
             }
         }
@@ -48,7 +47,7 @@ namespace inmobiliaria_airbnb.Controllers
 			}
 			catch (Exception ex)
 			{
-				logger.LogError(ex, "Error en Create de Inquilinos");
+				logger.LogError(ex, "Error en Create de inquilinos");
 				throw;
 			}
 		}
@@ -60,11 +59,13 @@ namespace inmobiliaria_airbnb.Controllers
             try
             {
                 repositorio.Alta(inquilino);
+                TempData["Id"] = inquilino.IdInquilino;
                 return RedirectToAction(nameof(Index));
             }
             catch(Exception ex)
             {
-                logger.LogError(ex, "Error en Create de Inquilinos");
+                logger.LogError(ex, "Error en Create de inquilinos");
+                TempData["Error"] = "Error al crear inquilino";
                 throw;
             }
         }
@@ -79,7 +80,7 @@ namespace inmobiliaria_airbnb.Controllers
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error en Edit de Inquilinos");
+                logger.LogError(ex, "Error en Edit de inquilinos");
 				throw;
             }
         }
@@ -99,12 +100,13 @@ namespace inmobiliaria_airbnb.Controllers
 				i.Email = entidad.Email;
 				i.Telefono = entidad.Telefono;
 				repositorio.Modificacion(i);
-				TempData["Mensaje"] = "Datos guardados correctamente";
+				TempData["Mensaje"] = "Inquilino modificado exitosamente";
 				return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error en Edit de Inquilinos");
+                logger.LogError(ex, "Error en Edit de inquilinos");
+                TempData["Error"] = "Error al editar inquilino";
 				throw;
             }
         }
@@ -119,7 +121,7 @@ namespace inmobiliaria_airbnb.Controllers
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error en Delete de Propietarios");
+                logger.LogError(ex, "Error en Delete de inquilino");
                 throw;
             }
         }
@@ -130,13 +132,13 @@ namespace inmobiliaria_airbnb.Controllers
             try
             {
                 repositorio.Baja(id);
-                //TODO: TempData Sin funcionar aun
-                TempData["Mensaje"] = "Eliminación realizada correctamente";
+                TempData["Mensaje"] = "Inquilino eliminado exitosamente";
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error en Delete de Propietarios");
+                logger.LogError(ex, "Error en Delete de inquilino");
+                TempData["Error"] = "Error al borrar inquilino";
                 throw;
             }
         }

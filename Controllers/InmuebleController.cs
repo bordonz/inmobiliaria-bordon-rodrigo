@@ -61,11 +61,13 @@ namespace inmobiliaria_airbnb.Controllers
             try
             {
                 repositorio.Alta(i);
+                TempData["Id"] = i.IdInmueble;
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, "Error en Create de Inmuebles");
+                TempData["Error"] = "Error al crear inmueble";
                 throw;
             }
         }
@@ -105,12 +107,13 @@ namespace inmobiliaria_airbnb.Controllers
                 i.PropietarioId = inmueble.PropietarioId;
                 i.Habilitado = inmueble.Habilitado;
                 repositorio.Modificacion(i);
-                TempData["Mensaje"] = "Datos guardados correctamente";
+                TempData["Mensaje"] = "Inmueble editado exitosamente";
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, "Error en Edit de Inmuebles");
+                TempData["Error"] = "Error al editar inmueble";
                 throw;
             }
         }
@@ -137,12 +140,13 @@ namespace inmobiliaria_airbnb.Controllers
             try
             {
                 repositorio.Baja(id);
-                TempData["Mensaje"] = "Eliminacion realizada correctamente";
+                TempData["Mensaje"] = "Inmueble eliminado exitosamente";
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, "Error en Delete de Inmuebles");
+                TempData["Error"] = "Error al borrar inmueble";
                 throw;
             }
         }

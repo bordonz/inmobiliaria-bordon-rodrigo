@@ -19,7 +19,7 @@
 	<script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
     @RenderSection("Styles", required: false)
 </head>
-<body>
+<body onload="init()">
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container-fluid">
@@ -61,6 +61,42 @@
             &copy; 2026 - inmobiliaria_airbnb - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
         </div>
     </footer>
+    <script type="text/javascript">
+		const notyf = new Notyf({
+			duration: 8500,
+			types: [
+				{
+					type: 'info',
+					background: '#056C5C',
+					icon: {
+						className: 'fa-solid fa-circle-info',
+						tagName: 'i',
+						color: 'white'
+					}
+				}
+			]
+		});
+		function init() {
+			let error = "@(ViewBag.Error??"")";
+			let mensaje = "@(ViewBag.Mensaje??"")";
+			let id = +"@(ViewBag.Id??0)";
+			notyf.info = function(mensaje) {
+				notyf.open({
+					type: 'info',
+					message: mensaje,
+				});
+			}
+			if(error) {
+				notyf.error(error);
+			}
+			if(mensaje) {
+				notyf.info(mensaje);
+			}
+			if(id) {
+				notyf.success(`La entidad fue dada de alta con id: ${id}`);
+			}
+		}
+    </script>
     <script src="~/lib/jquery/dist/jquery.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
