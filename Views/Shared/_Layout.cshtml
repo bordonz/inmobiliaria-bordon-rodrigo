@@ -99,6 +99,16 @@
 				notyf.success(`La entidad fue dada de alta con id: ${id}`);
 			}
 		}
+        function cambiarPagina(direccion, boton) {
+            var paginaN = 1;
+            var controlador = boton.dataset.controller;
+            if(direccion === "atras") {
+                paginaN --;
+            } else if(direccion === "adelante") {
+                paginaN ++;
+            }
+            window.location.href = "/" + controlador + "/Index?pagina=" + paginaN;
+        }
     </script>
     <script src="~/lib/jquery/dist/jquery.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
