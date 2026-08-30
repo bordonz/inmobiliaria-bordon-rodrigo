@@ -46,7 +46,7 @@ namespace inmobiliaria_airbnb.Controllers
 				return View();
 			}
 			catch (Exception ex)
-			{//poner breakpoints para detectar errores
+			{
 				logger.LogError(ex, "Error en Create de Propietarios");
 				throw;
 			}

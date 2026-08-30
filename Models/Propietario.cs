@@ -9,8 +9,10 @@ namespace inmobiliaria_airbnb.Models
         [Display(Name = "Código Int.")]
         public int IdPropietario { get; set; }
         [Required]
+        [Display(Name = "P.Nombre")]
         public string Nombre { get; set; } = "";
         [Required]
+        [Display(Name = "P.Apellido")]
         public string Apellido { get; set; } = "";
         [Required]
         public string Dni { get; set; } = "";

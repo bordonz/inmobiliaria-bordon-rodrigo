@@ -87,7 +87,7 @@ namespace inmobiliaria_airbnb.Models
             return res;
         }
 
-        public  List<Inmueble> ObtenerLista(int paginaNro = 1, int tamPagina = 10)
+        public List<Inmueble> ObtenerLista(int paginaNro = 1, int tamPagina = 10)
         {
             List<Inmueble> res = new List<Inmueble>();
             using (MySqlConnection connection = new MySqlConnection(connectionString))
