@@ -5,6 +5,6 @@ namespace inmobiliaria_airbnb.Models
         int Alta(T p);
 		int Baja(int id);
 		int Modificacion(T p);
-        List<T> Consultar();
+/*         List<T> Consultar(); */
     }
 }

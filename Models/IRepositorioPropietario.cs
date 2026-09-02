@@ -10,5 +10,9 @@ namespace inmobiliaria_airbnb.Models
         int ObtenerCantidad();
 
         Propietario? ObtenerPorId(int id);
+
+        string Hashear(string clave);
+
+        int ValidarClave(int id, string claveN, string claveR);
     }
 }

@@ -1,5 +1,6 @@
 using System.Data;
 using MySql.Data.MySqlClient;
+using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 
 //TODO: CORREGIR COMENTARIOS
 namespace inmobiliaria_airbnb.Models
@@ -220,6 +221,51 @@ namespace inmobiliaria_airbnb.Models
                 }
             }
             return res;
+        }
+
+        public string Hashear(string clave)
+        {
+            clave = Convert.ToBase64String(KeyDerivation.Pbkdf2(
+                password: clave,
+                salt: System.Text.Encoding.ASCII.GetBytes(configuration["Salt"]),
+                prf: KeyDerivationPrf.HMACSHA1,
+                iterationCount: 1000,
+                numBytesRequested: 256 / 8));
+            return clave;
+        }
+
+        public int ValidarClave(int IdPropietario, string claveNueva, string claveRepeticion)
+        {
+            int res = -1;
+            if (string.IsNullOrWhiteSpace(claveNueva) || string.IsNullOrWhiteSpace(claveRepeticion))
+            {
+                return -1;
+            }
+            
+            var claveN = Hashear(claveNueva);
+            var claveR = Hashear(claveRepeticion);
+
+            if(claveN != claveR)
+            {
+                return -1;
+            }
+
+            using (var connection = new MySqlConnection(connectionString))
+            {
+                string sql = @"UPDATE Propietarios
+                    SET Clave=@clave
+                    WHERE id_propietario = @id";
+                using (var command = new MySqlCommand(sql, connection))
+                {
+                    command.CommandType = CommandType.Text;
+                    command.Parameters.AddWithValue("@clave", claveN);
+                    command.Parameters.AddWithValue("@id", IdPropietario);
+                    connection.Open();
+                    res = command.ExecuteNonQuery();
+                }
+            }
+            return res;
+
         }
     }
 }

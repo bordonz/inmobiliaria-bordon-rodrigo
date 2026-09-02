@@ -58,6 +58,12 @@ namespace inmobiliaria_airbnb.Controllers
         {
             try
             {
+                propietario.Clave = Convert.ToBase64String(KeyDerivation.Pbkdf2(
+                    password: propietario.Clave,
+                    salt: System.Text.Encoding.ASCII.GetBytes(config["Salt"]),
+                    prf: KeyDerivationPrf.HMACSHA1,
+                    iterationCount: 1000,
+                    numBytesRequested: 256 / 8));
                 repositorio.Alta(propietario);
                 TempData["Id"] = propietario.IdPropietario;
                 return RedirectToAction(nameof(Index));
@@ -155,6 +161,42 @@ namespace inmobiliaria_airbnb.Controllers
             catch (Exception ex)
             {
                 return Json(new { error = ex.Message });
+            }
+        }
+
+        //POST: Propietarios/CambiarPass
+        [HttpPost]
+        public IActionResult CambiarPass(int IdPropietario, string claveVieja, string claveNueva, string claveRepeticion)
+        {
+            try
+            {
+                var propietario = repositorio.ObtenerPorId(IdPropietario);
+                var claveHash = repositorio.Hashear(claveVieja);
+
+                if(propietario.Clave != claveHash)
+                {
+                    TempData["Error"] = "La clave actual no es correcta";
+                    return RedirectToAction(nameof(Edit));
+                }
+
+                var res = repositorio.ValidarClave(IdPropietario, claveNueva, claveRepeticion);
+
+                if(res > 0)
+                {
+                    TempData["Mensaje"] = "Contraseña actualizada correctamente";
+                    return RedirectToAction(nameof(Index));
+                }
+                else
+                {
+                    TempData["Error"] = "Las claves nuevas no coinciden";
+                    return RedirectToAction(nameof(Edit));
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error en CambiarPass de Propietarios");
+                TempData["Error"] = "Error al cambiar contraseña de propietario";
+                throw;
             }
         }
     }
