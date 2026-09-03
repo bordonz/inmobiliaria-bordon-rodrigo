@@ -27,6 +27,11 @@ namespace inmobiliaria_airbnb.Models
         [ForeignKey(nameof(PropietarioId))]
         [BindNever]
         public Propietario? duenio { get; set; }
+        public string? Portada { get; set; }
+		[NotMapped]//Para EF
+		public IFormFile? PortadaFile { get; set; }
+		[ForeignKey(nameof(Imagen.InmuebleId))]
+		public List<Imagen> Imagenes { get; set; } = new List<Imagen>();
         public bool Habilitado { get; set; } = true;
     }
 }
