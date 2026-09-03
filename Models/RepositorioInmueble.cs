@@ -161,7 +161,7 @@ namespace inmobiliaria_airbnb.Models
             using(MySqlConnection connection = new MySqlConnection(connectionString))
             {
                 string sql = @"SELECT i.id_inmueble, i.direccion, i.cupo, i.precio_por_dia, i.porcentaje_reserva,
-                    i.latitud, i.longitud, i.tipo, i.propietario_id, i.habilitado,
+                    i.latitud, i.longitud, i.tipo, i.propietario_id, i.portada, i.habilitado,
                     p.nombre, p.apellido
                     FROM Inmuebles i
                     INNER JOIN propietarios p ON i.propietario_id = p.id_propietario
@@ -185,6 +185,7 @@ namespace inmobiliaria_airbnb.Models
                             Longitud = reader.GetDecimal("longitud"),
                             Tipo = reader.GetString("tipo"),
                             PropietarioId = reader.GetInt32("propietario_id"),
+                            Portada = reader.IsDBNull(reader.GetOrdinal("portada")) ? null : reader.GetString("portada"),
                             Habilitado = reader.GetBoolean("habilitado"),
                             duenio = new Propietario
                             {
@@ -197,11 +198,27 @@ namespace inmobiliaria_airbnb.Models
             }
             return i;
         }
-        public List<Inmueble> Consultar()
-        {
-            List<Inmueble> res = new List<Inmueble>();
-
-            return res;
-        }
+        
+        public int ModificarPortada(int id, string url)
+		{
+			int res = -1;
+			using (MySqlConnection connection = new MySqlConnection(connectionString))
+			{
+				string sql = @"
+					UPDATE Inmuebles SET
+					Portada=@portada
+					WHERE id_inmueble = @id";
+				using (MySqlCommand command = new MySqlCommand(sql, connection))
+				{
+					command.Parameters.AddWithValue("@portada", String.IsNullOrEmpty(url) ? DBNull.Value : url);
+					command.Parameters.AddWithValue("@id", id);
+					command.CommandType = CommandType.Text;
+					connection.Open();
+					res = command.ExecuteNonQuery();
+					connection.Close();
+				}
+			}
+			return res;
+		}
     }
 }
