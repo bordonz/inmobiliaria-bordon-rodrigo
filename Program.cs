@@ -8,6 +8,7 @@ builder.Services.AddScoped<IRepositorioPropietario, RepositorioPropietario>();
 builder.Services.AddScoped<IRepositorioInquilino, RepositorioInquilino>();
 builder.Services.AddScoped<IRepositorioInmueble, RepositorioInmueble>();
 builder.Services.AddScoped<IRepositorioReserva, RepositorioReserva>();
+builder.Services.AddScoped<IRepositorioImagen, RepositorioImagen>();
 
 var app = builder.Build();
 
@@ -36,10 +37,5 @@ app.MapControllerRoute(
     defaults: new { controller = "Propietarios" }
 );
 
-app.MapControllerRoute(
-    name: "inquilinos",
-    pattern: "inquilinos/{action=Index}/{id?}",
-    defaults: new { controller = "Propietarios" }
-);
-
 app.Run();
+//TODO: UPDATE DE DB DE INMUEBLES
