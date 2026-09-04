@@ -101,14 +101,21 @@
 			}
 		}
         function cambiarPagina(direccion, boton) {
-            var paginaN = 1;
+            var paginaN = parseInt(boton.dataset.pagina);
             var controlador = boton.dataset.controller;
-            if(direccion === "atras") {
+            var action = boton.dataset.action;
+            var id = boton.dataset.id;
+            if(direccion === "atras" && paginaN > 1) {
                 paginaN --;
             } else if(direccion === "adelante") {
                 paginaN ++;
             }
-            window.location.href = "/" + controlador + "/Index?pagina=" + paginaN;
+            var url = "/" + controlador + "/" + action + "?pagina=" + paginaN;
+                if (id) {
+                    url += "&id=" + id;
+                }
+
+            window.location.href = url;
         }
     </script>
     <script src="~/lib/jquery/dist/jquery.js"></script>
