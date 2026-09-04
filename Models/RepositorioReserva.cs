@@ -109,7 +109,7 @@ namespace inmobiliaria_airbnb.Models
                             InmuebleId = reader.GetInt32("inmueble_id"),
                             Inmueble = new Inmueble
                             {
-                                duenio = new Propietario
+                                Duenio = new Propietario
                                 {
                                     Nombre = reader.GetString("propietario_nombre"),
                                     Apellido = reader.GetString("propietario_apellido")
@@ -181,7 +181,7 @@ namespace inmobiliaria_airbnb.Models
                             InmuebleId = reader.GetInt32("inmueble_id"),
                             Inmueble = new Inmueble
                             {
-                                duenio = new Propietario
+                                Duenio = new Propietario
                                 {
                                     Nombre = reader.GetString("propietario_nombre"),
                                     Apellido = reader.GetString("propietario_apellido")

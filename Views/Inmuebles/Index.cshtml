@@ -5,7 +5,7 @@
 }
 
 <h1>
-	Inmuebles
+	<span>Inmuebles</span>
 	<div class="btn-group pull-right">
 		<a class="btn btn-primary" asp-action="Create" title="Crear">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clipboard-plus-fill" viewBox="0 0 16 16">
@@ -46,10 +46,10 @@
                 @Html.DisplayNameFor(model => model.PropietarioId)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.duenio.Nombre)
+                @Html.DisplayNameFor(model => model.Duenio.Nombre)
             </th>
 			<th>
-                @Html.DisplayNameFor(model => model.duenio.Apellido)
+                @Html.DisplayNameFor(model => model.Duenio.Apellido)
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.Habilitado)
@@ -57,7 +57,7 @@
 			<th></th>
 		</tr>
 	</thead>
-	<tbody>
+	<tbody id="tablaInmuebles">
 		@foreach (var item in Model)
 		{
 			<tr>
@@ -89,10 +89,10 @@
                     @Html.DisplayFor(modelItem => item.PropietarioId)
                 </td>
 				<td>
-                    @Html.DisplayFor(modelItem => item.duenio.Nombre)
+                    @Html.DisplayFor(modelItem => item.Duenio.Nombre)
                 </td>
 				<td>
-                    @Html.DisplayFor(modelItem => item.duenio.Apellido)
+                    @Html.DisplayFor(modelItem => item.Duenio.Apellido)
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.Habilitado)
@@ -134,4 +134,58 @@
 			<path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8"/>
 		</svg>
 	</button>
+	<button type="button" class="btn btn-primary" onclick="manejarEvento('Habilitados')">Habilitados 
+		<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check-lg" viewBox="0 0 16 16">
+  			<path d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l3.052 3.093 5.4-6.425z"/>
+		</svg>
+	</button>
+	<button type="button" class="btn btn-primary" onclick="manejarEvento('MasReservados365')">Reservas
+		<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-fire" viewBox="0 0 16 16">
+			<path d="M8 16c3.314 0 6-2 6-5.5 0-1.5-.5-4-2.5-6 .25 1.5-1.25 2-1.25 2C11 4 9 .5 6 0c.357 2 .5 4-2 6-1.25 1-2 2.729-2 4.5C2 14 4.686 16 8 16m0-1c-1.657 0-3-1-3-2.75 0-.75.25-2 1.25-3C6.125 10 7 10.5 7 10.5c-.375-1.25.5-3.25 2-3.5-.179 1-.25 2 1 3 .625.5 1 1.364 1 2.25C11 14 9.657 15 8 15"/>
+		</svg>
+	</button>
 </div>
+<script>
+	function capturarEvento(evento) {
+		if (evento === "Habilitados") {
+			return "/Inmuebles/Habilitados";
+		} else if (evento === "MasReservados365") {
+			return "/Inmuebles/MasReservados365";
+		} 
+		return "";
+	}
+	
+	async function manejarEvento(evento) {
+		try {
+			const titulo = document.querySelector("h1 span");
+			const url = capturarEvento(evento);
+			const response = await fetch(url);
+			const data = await response.json();
+
+			url === "/Inmuebles/Habilitados" ? titulo.textContent = "Inmuebles habilitados" : titulo.textContent = "Inmuebles mas reservados";
+			const tbody = document.querySelector("#tablaInmuebles");
+			tbody.innerHTML = "";
+
+			data.forEach(inmueble => {
+				tbody.innerHTML += `
+					<tr>
+						<td>${inmueble.idInmueble}</td>
+						<td>${inmueble.direccion}</td>
+						<td>${inmueble.cupo}</td>
+						<td>${inmueble.precioPorDia}</td>
+						<td>${inmueble.porcentajeReserva}</td>
+						<td>${inmueble.latitud}</td>
+						<td>${inmueble.longitud}</td>
+						<td>${inmueble.tipo}</td>
+						<td>${inmueble.propietarioId}</td>
+						<td>${inmueble.duenio?.nombre ?? ""}</td>
+						<td>${inmueble.duenio?.apellido ?? ""}</td>
+						<td>${inmueble.habilitado}</td>
+					</tr>
+				`;
+			});
+		} catch (error) {
+			console.error("Error:", error);
+		}
+	};
+</script>

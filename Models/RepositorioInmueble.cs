@@ -120,7 +120,7 @@ namespace inmobiliaria_airbnb.Models
                             Longitud = reader.GetDecimal("longitud"),
                             Tipo = reader.GetString("tipo"),
                             PropietarioId = reader.GetInt32("propietario_id"),
-                            duenio = new Propietario
+                            Duenio = new Propietario
                             {
                                 Nombre = reader.GetString("nombre"),
                                 Apellido = reader.GetString("apellido")
@@ -187,7 +187,7 @@ namespace inmobiliaria_airbnb.Models
                             PropietarioId = reader.GetInt32("propietario_id"),
                             Portada = reader.IsDBNull(reader.GetOrdinal("portada")) ? null : reader.GetString("portada"),
                             Habilitado = reader.GetBoolean("habilitado"),
-                            duenio = new Propietario
+                            Duenio = new Propietario
                             {
                                 Nombre = reader.GetString("nombre"),
                                 Apellido = reader.GetString("apellido")
@@ -274,7 +274,7 @@ namespace inmobiliaria_airbnb.Models
                             Longitud = reader.GetDecimal("longitud"),
                             Tipo = reader.GetString("tipo"),
                             PropietarioId = reader.GetInt32("propietario_id"),
-                            duenio = new Propietario
+                            Duenio = new Propietario
                             {
                                 Nombre = reader.GetString("nombre"),
                                 Apellido = reader.GetString("apellido")
@@ -287,5 +287,106 @@ namespace inmobiliaria_airbnb.Models
             }
             return res;
 		}
+
+        public List<Inmueble> ListarPorDisponibilidad(int paginaNro = 1, int tamPagina = 10)
+        {
+            List<Inmueble> res = new List<Inmueble>();
+            using (MySqlConnection connection = new MySqlConnection(connectionString))
+            {
+                string sql = @"SELECT i.id_inmueble, i.direccion, i.cupo, i.precio_por_dia, i.porcentaje_reserva,
+                    i.latitud, i.longitud, i.tipo, i.propietario_id, i.habilitado,
+                    p.nombre, p.apellido
+                    FROM inmuebles i
+                    INNER JOIN propietarios p ON i.propietario_id = p.id_propietario
+                    WHERE i.habilitado = 1
+                    ORDER BY i.id_inmueble
+                    LIMIT @tamPagina OFFSET @offset";
+                using (MySqlCommand command = new MySqlCommand(sql, connection))
+                {
+                    command.CommandType = CommandType.Text;
+                    command.Parameters.AddWithValue("@tamPagina", tamPagina);
+                    command.Parameters.AddWithValue("offset", (paginaNro - 1) * tamPagina);
+                    connection.Open();
+                    var reader = command.ExecuteReader();
+
+                    while (reader.Read())
+                    {
+                        Inmueble i = new Inmueble
+                        {
+                            IdInmueble = reader.GetInt32("id_inmueble"),
+                            Direccion = reader.GetString("direccion"),
+                            Cupo = reader.GetInt32("cupo"),
+                            PrecioPorDia = reader.GetDecimal("precio_por_dia"),
+                            PorcentajeReserva = reader.GetDecimal("porcentaje_reserva"),
+                            Latitud = reader.GetDecimal("latitud"),
+                            Longitud = reader.GetDecimal("longitud"),
+                            Tipo = reader.GetString("tipo"),
+                            PropietarioId = reader.GetInt32("propietario_id"),
+                            Duenio = new Propietario
+                            {
+                                Nombre = reader.GetString("nombre"),
+                                Apellido = reader.GetString("apellido")
+                            },
+                            Habilitado = reader.GetBoolean("habilitado"),
+                        };
+                        res.Add(i);
+                    }
+                }
+            }
+            return res;
+        }
+
+        public List<Inmueble> ListarMasReservados(int paginaNro = 1, int tamPagina = 10)
+        {
+            List<Inmueble> res = new List<Inmueble>();
+            using (MySqlConnection connection = new MySqlConnection(connectionString))
+            {
+                string sql = @"SELECT i.id_inmueble, i.direccion, i.cupo, i.precio_por_dia, i.porcentaje_reserva,
+                        i.latitud, i.longitud, i.tipo, i.propietario_id, i.habilitado,
+                        p.nombre, p.apellido,
+                        COUNT(r.id_reserva) AS total_reservas
+                    FROM reservas r
+                    INNER JOIN inmuebles i ON r.inmueble_id = i.id_inmueble
+                    INNER JOIN propietarios p ON i.propietario_id = p.id_propietario
+                    WHERE r.fecha_desde >= CURDATE() - INTERVAL 365 DAY
+                    GROUP BY i.id_inmueble, i.direccion, i.cupo, i.precio_por_dia, i.porcentaje_reserva,
+                        i.latitud, i.longitud, i.tipo, i.propietario_id, i.habilitado, p.nombre, p.apellido
+                    ORDER BY total_reservas DESC
+                    LIMIT @tamPagina OFFSET @offset";
+                using (MySqlCommand command = new MySqlCommand(sql, connection))
+                {
+                    command.CommandType = CommandType.Text;
+                    command.Parameters.AddWithValue("@tamPagina", tamPagina);
+                    command.Parameters.AddWithValue("offset", (paginaNro - 1) * tamPagina);
+                    connection.Open();
+                    var reader = command.ExecuteReader();
+
+                    while (reader.Read())
+                    {
+                        Inmueble i = new Inmueble
+                        {
+                            IdInmueble = reader.GetInt32("id_inmueble"),
+                            Direccion = reader.GetString("direccion"),
+                            Cupo = reader.GetInt32("cupo"),
+                            PrecioPorDia = reader.GetDecimal("precio_por_dia"),
+                            PorcentajeReserva = reader.GetDecimal("porcentaje_reserva"),
+                            Latitud = reader.GetDecimal("latitud"),
+                            Longitud = reader.GetDecimal("longitud"),
+                            Tipo = reader.GetString("tipo"),
+                            PropietarioId = reader.GetInt32("propietario_id"),
+                            Duenio = new Propietario
+                            {
+                                Nombre = reader.GetString("nombre"),
+                                Apellido = reader.GetString("apellido")
+                            },
+                            Habilitado = reader.GetBoolean("habilitado"),
+                        };
+                        res.Add(i);
+                    }
+                }
+            }
+            return res;
+        }
+
     }
 }

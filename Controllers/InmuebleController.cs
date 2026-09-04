@@ -238,5 +238,39 @@ namespace inmobiliaria_airbnb.Controllers
                 throw;
             }            
         }
+
+        [HttpGet]
+        public ActionResult Habilitados(int pagina = 1, int tamPagina = 10)
+        {
+            try
+            {
+                List<Inmueble> inmuebles = repositorio.ListarPorDisponibilidad(pagina, tamPagina);
+                var listado = Json(inmuebles);
+                return Json(inmuebles);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error en Habilitados de Inmuebles");
+                TempData["Error"] = "Error al listar solo inmuebles habilitados";
+                throw;
+            }
+        }
+
+        [HttpGet]
+        public ActionResult MasReservados365(int pagina = 1, int tamPagina = 10)
+        {
+            try
+            {
+                List<Inmueble> inmuebles = repositorio.ListarMasReservados(pagina, tamPagina);
+                var listado = Json(inmuebles);
+                return Json(inmuebles);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error en MasReservados365 de Inmuebles");
+                TempData["Error"] = "Error al listar los inmuebles mas reservados";
+                throw;
+            }
+        }
     }
 }

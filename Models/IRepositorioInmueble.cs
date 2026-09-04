@@ -10,5 +10,9 @@ namespace inmobiliaria_airbnb.Models
 
         List<Inmueble> BuscarPorPropietario(int id, int paginaNro, int tamPagina);
         int ObtenerCantidadPorPropietario(int idPropietario);
+
+        List<Inmueble> ListarPorDisponibilidad(int paginaNro = 1, int tamPagina = 10);
+
+        List<Inmueble> ListarMasReservados(int paginaNro = 1, int tamPagina = 10);
     }
 }

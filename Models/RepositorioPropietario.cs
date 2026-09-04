@@ -174,13 +174,6 @@ namespace inmobiliaria_airbnb.Models
 			return p;
 		}
 
-        public List<Propietario> Consultar()
-        {
-            List<Propietario> propietarios = null;
-            
-            return propietarios;
-        }
-
         public Propietario? ObtenerPorEmail(string email)
         {
             Propietario? p = null;

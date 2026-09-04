@@ -26,7 +26,7 @@ namespace inmobiliaria_airbnb.Models
         public int PropietarioId { get; set; }
         [ForeignKey(nameof(PropietarioId))]
         [BindNever]
-        public Propietario? duenio { get; set; }
+        public Propietario? Duenio { get; set; }
         public string? Portada { get; set; }
 		[NotMapped]//Para EF
 		public IFormFile? PortadaFile { get; set; }
