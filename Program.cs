@@ -38,4 +38,3 @@ app.MapControllerRoute(
 );
 
 app.Run();
-//TODO: UPDATE DE DB DE INMUEBLES

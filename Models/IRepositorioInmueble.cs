@@ -7,5 +7,8 @@ namespace inmobiliaria_airbnb.Models
         int ObtenerCantidad();
         Inmueble? ObtenerPorId(int id);
         int ModificarPortada(int InmuebleId, string ruta);
+
+        List<Inmueble> BuscarPorPropietario(int id, int paginaNro, int tamPagina);
+        int ObtenerCantidadPorPropietario(int idPropietario);
     }
 }

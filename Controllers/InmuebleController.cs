@@ -211,5 +211,32 @@ namespace inmobiliaria_airbnb.Controllers
 				return RedirectToAction(nameof(Imagenes), new { id = entidad.InmuebleId });
 			}
 		}
+
+        [HttpGet]
+        public ActionResult PorPropietario(int id, int pagina = 1)
+        {
+            try
+            {
+                var tamaño = 5;
+                var lista = repositorio.BuscarPorPropietario(id, Math.Max(pagina, 1), tamaño);
+                ViewBag.pagina = pagina;
+                var total = repositorio.ObtenerCantidadPorPropietario(id);
+                ViewBag.TotalPaginas = total % tamaño == 0 ? total / tamaño : total / tamaño +1;
+
+                ViewBag.PropietarioId = id;
+                
+                if (TempData.ContainsKey("Mensaje"))
+                {
+                    ViewBag.Mensaje = TempData["Mensaje"];
+                }
+                return View(lista);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error en PorPropietario de Inmuebles");
+                TempData["Error"] = "Error al buscar inmuebles por dueño";
+                throw;
+            }            
+        }
     }
 }
