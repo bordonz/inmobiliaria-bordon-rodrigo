@@ -388,5 +388,50 @@ namespace inmobiliaria_airbnb.Models
             return res;
         }
 
+        public List<Inmueble> SinReservasEn(int dias, int paginaNro = 1, int tamPagina = 10)
+        {
+            List<Inmueble> res = new List<Inmueble>();
+            using (MySqlConnection connection = new MySqlConnection(connectionString))
+            {
+                string sql = @"SELECT i.*
+                    FROM inmuebles i
+                    WHERE NOT EXISTS (
+                        SELECT 1
+                        FROM reservas r
+                        WHERE r.inmueble_id = i.id_inmueble
+                        AND r.fecha_hasta >= CURDATE() - INTERVAL @dias DAY
+                    )
+                    LIMIT @tamPagina OFFSET @offset;";
+                using (MySqlCommand command = new MySqlCommand(sql, connection))
+                {
+                    command.CommandType = CommandType.Text;
+                    command.Parameters.AddWithValue("@dias", dias);
+                    command.Parameters.AddWithValue("@tamPagina", tamPagina);
+                    command.Parameters.AddWithValue("offset", (paginaNro - 1) * tamPagina);
+                    connection.Open();
+                    var reader = command.ExecuteReader();
+
+                    while (reader.Read())
+                    {
+                        Inmueble i = new Inmueble
+                        {
+                            IdInmueble = reader.GetInt32("id_inmueble"),
+                            Direccion = reader.GetString("direccion"),
+                            Cupo = reader.GetInt32("cupo"),
+                            PrecioPorDia = reader.GetDecimal("precio_por_dia"),
+                            PorcentajeReserva = reader.GetDecimal("porcentaje_reserva"),
+                            Latitud = reader.GetDecimal("latitud"),
+                            Longitud = reader.GetDecimal("longitud"),
+                            Tipo = reader.GetString("tipo"),
+                            PropietarioId = reader.GetInt32("propietario_id"),
+                            Habilitado = reader.GetBoolean("habilitado"),
+                        };
+                        res.Add(i);
+                    }
+                }
+            }
+            return res;
+        }
+
     }
 }

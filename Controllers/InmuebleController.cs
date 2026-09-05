@@ -238,7 +238,8 @@ namespace inmobiliaria_airbnb.Controllers
                 throw;
             }            
         }
-
+    
+        //TODO: Agregar return en exceptions
         [HttpGet]
         public ActionResult Habilitados(int pagina = 1, int tamPagina = 10)
         {
@@ -269,6 +270,23 @@ namespace inmobiliaria_airbnb.Controllers
             {
                 logger.LogError(ex, "Error en MasReservados365 de Inmuebles");
                 TempData["Error"] = "Error al listar los inmuebles mas reservados";
+                throw;
+            }
+        }
+
+        [HttpGet]
+        public ActionResult InmuebleSinReservas(int dias, int pagina = 1, int tamPagina = 10)
+        {
+            try
+            {
+                var quedia = dias;
+                List<Inmueble> inmuebles = repositorio.SinReservasEn(dias, pagina, tamPagina);
+                return Json(inmuebles);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error en InmuebleSinReservas de Inmuebles");
+                TempData["Error"] = "Error al listar los inmuebles sin reservados";
                 throw;
             }
         }

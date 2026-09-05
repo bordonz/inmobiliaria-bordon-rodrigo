@@ -14,5 +14,7 @@ namespace inmobiliaria_airbnb.Models
         List<Inmueble> ListarPorDisponibilidad(int paginaNro = 1, int tamPagina = 10);
 
         List<Inmueble> ListarMasReservados(int paginaNro = 1, int tamPagina = 10);
+
+        List<Inmueble> SinReservasEn(int dias, int paginaNro = 1, int tamPagina = 10);
     }
 }
