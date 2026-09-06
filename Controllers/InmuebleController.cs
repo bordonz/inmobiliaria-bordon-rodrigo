@@ -273,7 +273,7 @@ namespace inmobiliaria_airbnb.Controllers
                 throw;
             }
         }
-
+        //GET: Inmuebles/InmuebleSinReservas
         [HttpGet]
         public ActionResult InmuebleSinReservas(int dias, int pagina = 1, int tamPagina = 10)
         {
@@ -287,6 +287,22 @@ namespace inmobiliaria_airbnb.Controllers
             {
                 logger.LogError(ex, "Error en InmuebleSinReservas de Inmuebles");
                 TempData["Error"] = "Error al listar los inmuebles sin reservados";
+                throw;
+            }
+        }
+        //GET: Inmuebles/SinReservasPorFecha
+        [HttpGet]
+        public ActionResult SinReservasPorFecha(DateTime fechaDesde, DateTime fechaHasta, int paginaNro = 1, int tamPagina = 10)
+        {
+            try
+            {
+                List<Inmueble> inmuebles = repositorio.SinReservasPorFecha(fechaDesde, fechaHasta, paginaNro, tamPagina);
+                return Json(inmuebles);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error en SinReservasPorFecha de InmuebleController");
+                TempData["Error"] = "Error al listar los inmuebles sin reservas por fecha";
                 throw;
             }
         }

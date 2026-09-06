@@ -157,7 +157,18 @@
 			<option value="210">210 dias sin reservas</option>
 		</select>
 	</div>
+	<div class="row">
+			<div class="w-25 mt-3">
+				<label for="fechaDesde">Reservas desde</label>
+				<input type="date" id="fechaDesde" name="fechaDesde" min="2026-01-01" max="2026-12-31" class="form-control">
+			</div>
+			<div class="w-25 mt-3">
+				<label for="fechaHasta">Reservas hasta</label>
+				<input type="date" id="fechaHasta" name="fechaHasta" min="2026-01-01" max="2026-12-31" class="form-control" onchange="inmueblesSinReserva()">
+			</div>
+	</div>
 </div>
+
 <script>
 	function capturarEvento(evento, dias = null) {
 		if (evento === "Habilitados") {
@@ -211,4 +222,41 @@
 			console.error("Error:", error);
 		}
 	};
+
+	async function inmueblesSinReserva(){
+		try {
+			var fechaDesde = document.querySelector('#fechaDesde').value;
+			var fechaHasta = document.querySelector('#fechaHasta').value;
+			
+			console.log(fechaDesde);
+			console.log(fechaHasta);
+			const url = `/Inmuebles/SinReservasPorFecha?fechaDesde=${fechaDesde}&fechaHasta=${fechaHasta}`;
+			const response = await fetch(url);
+			const data = await response.json();
+
+			const tbody = document.querySelector("#tablaInmuebles");
+			tbody.innerHTML = "";
+
+			data.forEach(inmueble => {
+				tbody.innerHTML += `
+					<tr>
+						<td>${inmueble.idInmueble}</td>
+						<td>${inmueble.direccion}</td>
+						<td>${inmueble.cupo}</td>
+						<td>${inmueble.precioPorDia}</td>
+						<td>${inmueble.porcentajeReserva}</td>
+						<td>${inmueble.latitud}</td>
+						<td>${inmueble.longitud}</td>
+						<td>${inmueble.tipo}</td>
+						<td>${inmueble.propietarioId}</td>
+						<td>${inmueble.duenio?.nombre ?? ""}</td>
+						<td>${inmueble.duenio?.apellido ?? ""}</td>
+						<td>${inmueble.habilitado}</td>
+					</tr>
+				`;
+			});
+		} catch (error) {
+			console.error("Error:", error);
+		}
+	}
 </script>
