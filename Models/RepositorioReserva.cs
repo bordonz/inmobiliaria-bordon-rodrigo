@@ -200,10 +200,62 @@ namespace inmobiliaria_airbnb.Models
             return r;
         }
 
-        public List<Reserva> Consultar()
+        public List<Reserva> FiltrarPorFecha(DateTime fechaDesde, DateTime fechaHasta, int paginaNro, int tamPagina)
         {
             List<Reserva> res = new List<Reserva>();
+            using (MySqlConnection connection = new MySqlConnection(connectionString))
+            {
+                string sql = @"SELECT r.id_reserva, r.estado, r.monto, r.fecha_desde, r.fecha_hasta,
+                    r.inmueble_id, r.inquilino_id,
+                    p.nombre AS propietario_nombre, p.apellido AS propietario_apellido, 
+                    i.nombre AS inquilino_nombre, i.apellido AS inquilino_apellido
+                    FROM Reservas r
+                    INNER JOIN Inmuebles inm ON r.inmueble_id = inm.id_inmueble
+                    INNER JOIN Propietarios p ON inm.propietario_id = p.id_propietario
+                    INNER JOIN Inquilinos i ON r.inquilino_id = i.id_inquilino
+                    WHERE r.fecha_desde >= @fechaDesde
+                    AND r.fecha_hasta <= @fechaHasta
+                    AND r.estado = 'Confirmada'
+                    ORDER BY r.id_reserva
+                    LIMIT @tamPagina OFFSET @offset;";
+                using (MySqlCommand command = new MySqlCommand(sql, connection))
+                {
+                    command.Parameters.AddWithValue("@fechaDesde", fechaDesde);
+                    command.Parameters.AddWithValue("@fechaHasta", fechaHasta);
+                    command.Parameters.AddWithValue("@tamPagina", tamPagina);
+                    command.Parameters.AddWithValue("@offset", (paginaNro -1) * tamPagina);
+                    connection.Open();
+                    var reader = command.ExecuteReader();
 
+                    while (reader.Read())
+                    {
+                        Reserva r = new Reserva
+                        {
+                            IdReserva = reader.GetInt32("id_reserva"),
+                            Estado = reader.GetString("estado"),
+                            Monto = reader.GetDecimal("monto"),
+                            FechaDesde = reader.GetDateTime("fecha_desde"),
+                            FechaHasta = reader.GetDateTime("fecha_hasta"),
+                            InmuebleId = reader.GetInt32("inmueble_id"),
+                            Inmueble = new Inmueble
+                            {
+                                Duenio = new Propietario
+                                {
+                                    Nombre = reader.GetString("propietario_nombre"),
+                                    Apellido = reader.GetString("propietario_apellido")
+                                }
+                            },
+                            InquilinoId = reader.GetInt32("inquilino_id"),
+                            Inquilino = new Inquilino
+                            {
+                                Nombre = reader.GetString("inquilino_nombre"),
+                                Apellido = reader.GetString("inquilino_apellido")
+                            }
+                        };
+                        res.Add(r);
+                    }
+                }
+            }
             return res;
         }
     }

@@ -160,5 +160,22 @@ namespace inmobiliaria_airbnb.Controllers
                 return RedirectToAction(nameof(Index));
             }
         }
+
+        //GET: Reservas/FiltrarReservas
+        [HttpGet]
+        public ActionResult FiltrarReservas(DateTime fechaDesde, DateTime fechaHasta, int paginaNro = 1, int tamPagina = 10)
+        {
+            try
+            {
+                List<Reserva> reservas = repositorio.FiltrarPorFecha(fechaDesde, fechaHasta, paginaNro = 1, tamPagina = 10);
+                return Json(reservas);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error en FiltrarReservas de ReservasController");
+                TempData["Error"] = "Error al filtrar la reserva";
+                throw;
+            }
+        }
     }
 }

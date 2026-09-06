@@ -53,7 +53,7 @@
             </th>
 		</tr>
 	</thead>
-	<tbody>
+	<tbody id="tablaReservas">
 		@foreach (var item in Model)
 		{
 			<tr>
@@ -122,4 +122,53 @@
 			<path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8"/>
 		</svg>
 	</button>
+
+	<div class="row">
+		<div class="w-25 mt-3">
+			<label for="fechaDesde">Reservas desde</label>
+			<input type="date" id="fechaDesde" name="fechaDesde" min="2026-01-01" max="2026-12-31" class="form-control">
+		</div>
+		<div class="w-25 mt-3">
+			<label for="fechaHasta">Reservas hasta</label>
+			<input type="date" id="fechaHasta" name="fechaHasta" min="2026-01-01" max="2026-12-31" class="form-control" onchange="filtrarReservas()">
+		</div>
+	</div>
 </div>
+
+<script>
+	async function filtrarReservas(){
+		try {
+			var fechaDesde = document.querySelector('#fechaDesde').value;
+			var fechaHasta = document.querySelector('#fechaHasta').value;
+			
+			console.log(fechaDesde);
+			console.log(fechaHasta);
+			const url = `/Reservas/FiltrarReservas?fechaDesde=${fechaDesde}&fechaHasta=${fechaHasta}`;
+			const response = await fetch(url);
+			const data = await response.json();
+
+			const tbody = document.querySelector("#tablaReservas");
+			tbody.innerHTML = "";
+
+			data.forEach(reserva => {
+				tbody.innerHTML += `
+						<tr>
+							<td>${reserva.idReserva}</td>
+							<td>${reserva.estado}</td>
+							<td>${reserva.monto}</td>
+							<td>${reserva.fechaDesde}</td>
+							<td>${reserva.fechaHasta}</td>
+							<td>${reserva.inmuebleId}</td>
+							<td>${reserva.inmueble.duenio.nombre}</td>
+							<td>${reserva.inmueble.duenio.apellido}</td>
+							<td>${reserva.inquilinoId}</td>
+							<td>${reserva.inquilino.nombre}</td>
+							<td>${reserva.inquilino.apellido}</td>
+						</tr>
+					`;
+			});
+		} catch (error) {
+			console.error("Error en la funcion de filtrarReservas: ", error);
+		}
+	}
+</script>
