@@ -177,5 +177,22 @@ namespace inmobiliaria_airbnb.Controllers
                 throw;
             }
         }
+
+        [HttpGet]
+        public ActionResult SinReservas(int dias, int pagina = 1, int tamPagina = 10)
+        {
+            try
+            {
+                var quedia = dias;
+                List<Reserva> reservas = repositorio.SinReservasEn(dias, pagina, tamPagina);
+                return Json(reservas);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error en SinReservas de ReservasController");
+                TempData["Error"] = "Error al listar reservas por terminar en x dias";
+                throw;
+            }
+        }
     }
 }

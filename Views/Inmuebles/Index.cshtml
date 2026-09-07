@@ -146,7 +146,6 @@
 	</button>
 	<div class="w-25 mt-3">
 		<select class="form-select" onchange="manejarEvento('InmuebleSinReservas', this.value)">
-			<option value="2">2 dias sin reservas</option>
 			<option value="7">7 dias sin reservas</option>
 			<option value="30">30 dias sin reservas</option>
 			<option value="60">60 dias sin reservas</option>
@@ -164,7 +163,7 @@
 			</div>
 			<div class="w-25 mt-3">
 				<label for="fechaHasta">Reservas hasta</label>
-				<input type="date" id="fechaHasta" name="fechaHasta" min="2026-01-01" max="2026-12-31" class="form-control" onchange="inmueblesSinReserva()">
+				<input type="date" id="fechaHasta" name="fechaHasta" min="2026-01-01" max="2026-12-31" class="form-control" onchange="manejarEvento('SinReservaPorFecha')">
 			</div>
 	</div>
 </div>
@@ -178,7 +177,11 @@
 		} else if (evento === "InmuebleSinReservas" && dias) {
 			const diasInt = parseInt(dias, 10);
 			return `/Inmuebles/InmuebleSinReservas?dias=${diasInt}`;
-    	}
+    	} else if (evento === "SinReservaPorFecha"){
+			var fechaDesde = document.querySelector('#fechaDesde').value;
+			var fechaHasta = document.querySelector('#fechaHasta').value;
+			return `/Inmuebles/SinReservasPorFecha?fechaDesde=${fechaDesde}&fechaHasta=${fechaHasta}`;
+		}
 		return "";
 	}
 	
@@ -188,13 +191,18 @@
 			const url = capturarEvento(evento, dias);
 			const response = await fetch(url);
 			const data = await response.json();
+			const diasInt = parseInt(dias, 10);
 
 			if (url === "/Inmuebles/Habilitados") {
 				titulo.textContent = "Inmuebles habilitados";
 			} else if (url === "/Inmuebles/MasReservados365") {
 				titulo.textContent = "Inmuebles mas reservados";
-			} else {
+			} else if (url === `/Inmuebles/InmuebleSinReservas?dias=${diasInt}`) {
 				titulo.textContent = `Inmuebles con ${dias} dias sin reservas`;
+			} else {
+				var fechaDesde = document.querySelector('#fechaDesde').value;
+				var fechaHasta = document.querySelector('#fechaHasta').value;
+				titulo.textContent = `Inmuebles sin reservas desde ${fechaDesde} hasta ${fechaHasta}`;
 			}
 
 			const tbody = document.querySelector("#tablaInmuebles");
@@ -222,41 +230,4 @@
 			console.error("Error:", error);
 		}
 	};
-
-	async function inmueblesSinReserva(){
-		try {
-			var fechaDesde = document.querySelector('#fechaDesde').value;
-			var fechaHasta = document.querySelector('#fechaHasta').value;
-			
-			console.log(fechaDesde);
-			console.log(fechaHasta);
-			const url = `/Inmuebles/SinReservasPorFecha?fechaDesde=${fechaDesde}&fechaHasta=${fechaHasta}`;
-			const response = await fetch(url);
-			const data = await response.json();
-
-			const tbody = document.querySelector("#tablaInmuebles");
-			tbody.innerHTML = "";
-
-			data.forEach(inmueble => {
-				tbody.innerHTML += `
-					<tr>
-						<td>${inmueble.idInmueble}</td>
-						<td>${inmueble.direccion}</td>
-						<td>${inmueble.cupo}</td>
-						<td>${inmueble.precioPorDia}</td>
-						<td>${inmueble.porcentajeReserva}</td>
-						<td>${inmueble.latitud}</td>
-						<td>${inmueble.longitud}</td>
-						<td>${inmueble.tipo}</td>
-						<td>${inmueble.propietarioId}</td>
-						<td>${inmueble.duenio?.nombre ?? ""}</td>
-						<td>${inmueble.duenio?.apellido ?? ""}</td>
-						<td>${inmueble.habilitado}</td>
-					</tr>
-				`;
-			});
-		} catch (error) {
-			console.error("Error:", error);
-		}
-	}
 </script>

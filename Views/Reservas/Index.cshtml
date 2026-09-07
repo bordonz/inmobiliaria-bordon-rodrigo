@@ -130,13 +130,25 @@
 		</div>
 		<div class="w-25 mt-3">
 			<label for="fechaHasta">Reservas hasta</label>
-			<input type="date" id="fechaHasta" name="fechaHasta" min="2026-01-01" max="2026-12-31" class="form-control" onchange="filtrarReservas()">
+			<input type="date" id="fechaHasta" name="fechaHasta" min="2026-01-01" max="2026-12-31" class="form-control" onchange="manejarEvento('filtrarReservas')">
 		</div>
 	</div>
+	<div class="w-25 mt-3">
+		<select class="form-select" onchange="manejarEvento('SinReservas', this.value)">
+			<option value="2">2 dias sin reservas</option>
+			<option value="7">7 dias sin reservas</option>
+			<option value="30">30 dias sin reservas</option>
+			<option value="60">60 dias sin reservas</option>
+			<option value="90">90 dias sin reservas</option>
+			<option value="120">120 dias sin reservas</option>
+			<option value="150">150 dias sin reservas</option>
+			<option value="180">180 dias sin reservas</option>
+			<option value="210">210 dias sin reservas</option>
+		</select>
 </div>
 
 <script>
-	async function filtrarReservas(){
+@* 	async function filtrarReservas(){
 		try {
 			var fechaDesde = document.querySelector('#fechaDesde').value;
 			var fechaHasta = document.querySelector('#fechaHasta').value;
@@ -171,4 +183,44 @@
 			console.error("Error en la funcion de filtrarReservas: ", error);
 		}
 	}
+ *@
+	async function manejarEvento(evento, dias = null) {
+		try {
+			var url;
+			if (evento == "filtrarReservas") {
+				var fechaDesde = document.querySelector('#fechaDesde').value;
+				var fechaHasta = document.querySelector('#fechaHasta').value;
+				url = `/Reservas/FiltrarReservas?fechaDesde=${fechaDesde}&fechaHasta=${fechaHasta}`;
+			} else if (evento == "SinReservas"){
+				const diasInt = parseInt(dias, 10);
+				url = `/Reservas/SinReservas?dias=${diasInt}`;
+			}
+@* 			const url = `/Reservas/SinReservas?dias=${diasInt}`; *@
+			const response = await fetch(url);
+			const data = await response.json();
+
+			const tbody = document.querySelector("#tablaReservas");
+			tbody.innerHTML = "";
+
+			data.forEach(reserva => {
+				tbody.innerHTML += `
+						<tr>
+							<td>${reserva.idReserva}</td>
+							<td>${reserva.estado}</td>
+							<td>${reserva.monto}</td>
+							<td>${reserva.fechaDesde}</td>
+							<td>${reserva.fechaHasta}</td>
+							<td>${reserva.inmuebleId}</td>
+							<td>${reserva.inmueble.duenio.nombre}</td>
+							<td>${reserva.inmueble.duenio.apellido}</td>
+							<td>${reserva.inquilinoId}</td>
+							<td>${reserva.inquilino.nombre}</td>
+							<td>${reserva.inquilino.apellido}</td>
+						</tr>
+					`;
+			});
+		} catch (error) {
+			console.error("Error:", error);
+		}
+	};
 </script>

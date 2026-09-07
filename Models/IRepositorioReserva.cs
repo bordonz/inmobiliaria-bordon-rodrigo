@@ -7,5 +7,6 @@ namespace inmobiliaria_airbnb.Models
         Reserva? ObtenerPorId(int id);
 
         List<Reserva> FiltrarPorFecha(DateTime fechaDesde, DateTime fechaHasta, int paginaNro, int tamPagina);
+        List<Reserva> SinReservasEn(int dias, int paginaNro, int tamPagina);
     }
 }
