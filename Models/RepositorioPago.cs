@@ -8,8 +8,6 @@ namespace inmobiliaria_airbnb.Models
         {
             
         }
-
-        //TODO: Metodo para traer la reserva a la que corresponde dicho pago.
             public int Alta(Pago p)
             {
                 int res = -1;

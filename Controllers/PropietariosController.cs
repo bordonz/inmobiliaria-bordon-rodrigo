@@ -86,7 +86,7 @@ namespace inmobiliaria_airbnb.Controllers
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error en Create de Propietarios");
+                logger.LogError(ex, "Error en Edit de Propietarios");
 				throw;
             }
         }
