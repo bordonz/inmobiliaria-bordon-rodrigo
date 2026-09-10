@@ -1,0 +1,31 @@
+@model inmobiliaria_airbnb.Models.TipoInmueble;
+@{
+    ViewData["Title"] = "Eliminar";
+}
+
+<h1>Eliminar tipo de inmueble</h1>
+
+<h3>¿Seguro que desea eliminar el pago?</h3>
+<div>
+    <h4>Pago</h4>
+    <hr />
+    <dl class="row">
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.IdTipoInmueble)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.IdTipoInmueble)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Descripcion)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Descripcion)
+        </dd>
+    </dl>
+    
+    <form asp-action="Delete">
+        <input type="submit" value="Eliminar" class="btn btn-danger" /> |
+        <a asp-action="Index">Volver al listado</a>
+    </form>
+</div>
