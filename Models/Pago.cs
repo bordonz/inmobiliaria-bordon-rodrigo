@@ -16,6 +16,7 @@ namespace inmobiliaria_airbnb.Models
         [Required]
         public DateTime FechaPago { get; set; }
         [Required]
+        [Display(Name = "Importe")]
         public decimal Monto { get; set; }
         [Required]
         public string Estado { get; set; }

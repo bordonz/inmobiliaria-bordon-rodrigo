@@ -36,7 +36,32 @@ namespace inmobiliaria_airbnb.Controllers
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error en index de Reservas");
+                logger.LogError(ex, "Error en Index de Reservas");
+                throw;
+            }
+        }
+
+        //GET: Reservas/index
+        public ActionResult PagosReservas(int id, int pagina = 1)
+        {
+            try
+            {
+                var tamaño = 5;
+                var lista = repositorio.ObtenerPagos(id, Math.Max(pagina, 1), tamaño);
+                ViewBag.pagina = pagina;
+                var total = repositorio.ObtenerCantidadPagos(id);
+                ViewBag.TotalPaginas = total % tamaño == 0 ? total / tamaño : total / tamaño +1;
+                ViewBag.id = TempData["id"];
+
+                if (TempData.ContainsKey("Mensaje"))
+                {
+                    ViewBag.Mensaje = TempData["Mensaje"];
+                }
+                return View(lista);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error en PagosReservas de Reservas");
                 throw;
             }
         }
