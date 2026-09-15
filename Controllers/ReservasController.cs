@@ -72,7 +72,7 @@ namespace inmobiliaria_airbnb.Controllers
 
         //GET: Reservas/Create
         [Authorize(Roles="Empleado, Administrador")]
-        public ActionResult Create()
+        public ActionResult Create(int? inquilinoId = null, int? inmuebleId = null)
         {
             try
             {
@@ -80,7 +80,15 @@ namespace inmobiliaria_airbnb.Controllers
                 {
                     ViewBag.Mensaje = TempData["Error"];
                 }
-                return View();
+                var reserva = new Reserva();
+
+                if (inquilinoId.HasValue)
+                    reserva.InquilinoId = inquilinoId.Value;
+
+                if (inmuebleId.HasValue)
+                    reserva.InmuebleId = inmuebleId.Value;
+
+                return View(reserva);
             }
             catch (Exception ex)
             {
@@ -264,5 +272,21 @@ namespace inmobiliaria_airbnb.Controllers
                 throw;
             }
         }
+
+        //GET: Reservas/Auditoria
+        [Authorize(Roles="Empleado, Administrador")]
+        public ActionResult Renovar(int id)
+        {
+            var reserva = repositorio.ObtenerPorId(id);
+            if (reserva == null) return NotFound();
+
+            var nueva = new Reserva
+            {
+                InquilinoId = reserva.InquilinoId,
+                InmuebleId = reserva.InmuebleId,
+            };
+
+            return View("Create", nueva);
+                }
     }
 }
