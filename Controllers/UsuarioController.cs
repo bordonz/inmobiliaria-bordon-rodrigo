@@ -1,0 +1,376 @@
+using System.Security.Claims;
+using inmobiliaria_airbnb.Models;
+using inmobiliaria_airbnb.Services;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cryptography.KeyDerivation;
+using Microsoft.AspNetCore.Mvc;
+
+namespace inmobiliaria_airbnb.Controllers
+{
+	public class UsuariosController : Controller
+    {
+		private readonly ILogger<UsuariosController> logger;
+		private readonly IConfiguration configuration;
+		private readonly IWebHostEnvironment environment;
+		private readonly IRepositorioUsuario repositorio;
+
+		public UsuariosController(IConfiguration configuration, IWebHostEnvironment environment, IRepositorioUsuario repositorio, ILogger<UsuariosController> logger)
+		{
+			this.configuration = configuration;
+			this.environment = environment;
+			this.repositorio = repositorio;
+			this.logger = logger;
+		}
+
+		// GET: Usuarios
+		[Authorize(Policy = "Administrador")]
+		public ActionResult Index(int pagina = 1)
+		{
+            try
+            {               
+                var tamaño = 5;
+                var usuarios = repositorio.ObtenerLista(Math.Max(pagina, 1), tamaño);
+                ViewBag.Pagina = pagina;
+                var total = repositorio.ObtenerCantidad();
+                ViewBag.TotalPaginas = total % tamaño == 0 ? total / tamaño : total / tamaño + 1;
+                ViewBag.Id = TempData["Id"];
+                if (TempData.ContainsKey("Mensaje"))
+                    ViewBag.Mensaje = TempData["Mensaje"];
+                return View(usuarios);
+            } catch(Exception ex)
+            {
+                logger.LogError(ex, "Error en Index de Propietarios");
+				throw;
+            }
+		}
+
+		// GET: Usuarios/Details/5
+/* 		[Authorize(Policy = "Administrador")]
+		public ActionResult Details(int id)
+		{
+			var e = repositorio.ObtenerPorId(id);
+			return View(e);
+		} */
+
+		// GET: Usuarios/Create
+		[Authorize(Policy = "Administrador")]
+		public ActionResult Create()
+		{
+			ViewBag.Roles = Usuario.ObtenerRoles();
+			return View();
+		}
+
+		// POST: Usuarios/Create
+		[HttpPost]
+		[ValidateAntiForgeryToken]
+		[Authorize(Policy = "Administrador")]
+		public ActionResult Create(Usuario u)
+		{
+			if (!ModelState.IsValid)
+				return View();
+			try
+			{
+				string hashed = Convert.ToBase64String(KeyDerivation.Pbkdf2(
+					password: u.Clave,
+					salt: System.Text.Encoding.ASCII.GetBytes(configuration["Salt"] ?? ""),
+					prf: KeyDerivationPrf.HMACSHA1,
+					iterationCount: 1000,
+					numBytesRequested: 256 / 8));
+				u.Clave = hashed;
+				int res = repositorio.Alta(u);
+				if (u.AvatarFile != null && u.IdUsuario > 0)
+				{
+					string wwwPath = environment.WebRootPath;
+					string path = Path.Combine(wwwPath, "Uploads");
+					if (!Directory.Exists(path))
+					{
+						Directory.CreateDirectory(path);
+					}
+					//Path.GetFileName(u.AvatarFile.FileName);//este nombre se puede repetir
+					string fileName = "avatar_" + u.IdUsuario + Path.GetExtension(u.AvatarFile.FileName);
+					string pathCompleto = Path.Combine(path, fileName);
+					u.Avatar = Path.Combine("/Uploads", fileName);
+					// Esta operación guarda la foto en memoria en la ruta que necesitamos
+					using (FileStream stream = new FileStream(pathCompleto, FileMode.Create))
+					{
+						u.AvatarFile.CopyTo(stream);
+					}
+					repositorio.Modificacion(u);
+				}
+				return RedirectToAction(nameof(Index));
+			}
+			catch (Exception ex)
+			{
+				logger.LogError(ex, "Error al crear el usuario");
+				ViewBag.Error = ex.Message;
+				ViewBag.Roles = Usuario.ObtenerRoles();
+				return View();
+			}
+		}
+
+		// GET: Usuarios/Edit/5
+		[Authorize(Policy = "Empleado")]
+		public ActionResult Perfil()
+		{
+			ViewData["Title"] = "Mi perfil";
+			var u = repositorio.ObtenerPorId(this.UsuarioId());
+			ViewBag.Roles = Usuario.ObtenerRoles();
+			return View(nameof(Edit), u);
+		}
+
+		// GET: Usuarios/Edit/5
+		[Authorize(Policy = "Administrador")]
+		public ActionResult Edit(int id)
+		{
+			ViewData["Title"] = "Editar usuario";
+			var u = repositorio.ObtenerPorId(id);
+			ViewBag.Roles = Usuario.ObtenerRoles();
+			return View(u);
+		}
+
+		// POST: Usuarios/Edit/5
+		[HttpPost]
+		[ValidateAntiForgeryToken]
+		[Authorize]
+		public ActionResult Edit(int id, Usuario u)
+		{
+			var vista = nameof(Edit);//de que vista provengo
+			try
+			{
+				if (!User.IsInRole("Administrador"))//no soy admin
+				{
+					vista = nameof(Perfil);//solo puedo ver mi perfil
+					// El Id ya viene en la cookie: se compara directo, sin ir a la BD.
+					if (this.UsuarioId() != id)//si no es admin, solo puede modificarse él mismo
+						return RedirectToAction(nameof(Index), "Home");
+				}
+
+				if (!ModelState.IsValid)
+                {
+                    ViewBag.Roles = Usuario.ObtenerRoles();
+                    return View(vista, u);
+                }
+
+                var usuarioE = repositorio.ObtenerPorId(id);
+                if (usuarioE == null)
+                {
+                    return NotFound();
+                }
+
+                usuarioE.Nombre = u.Nombre;
+                usuarioE.Apellido = u.Apellido;
+                usuarioE.Email = u.Email;
+                usuarioE.Rol = u.Rol;
+
+                // Si subió avatar nuevo
+                if (u.AvatarFile != null)
+                {
+                    string wwwPath = environment.WebRootPath;
+                    string path = Path.Combine(wwwPath, "Uploads");
+                    if (!Directory.Exists(path))
+                        Directory.CreateDirectory(path);
+
+                    string fileName = "avatar_" + id + Path.GetExtension(u.AvatarFile.FileName);
+                    string pathCompleto = Path.Combine(path, fileName);
+                    usuarioE.Avatar = Path.Combine("/Uploads", fileName);
+
+                    using (FileStream stream = new FileStream(pathCompleto, FileMode.Create))
+                    {
+                        u.AvatarFile.CopyTo(stream);
+                    }
+                }
+
+                repositorio.Modificacion(usuarioE);
+                TempData["Mensaje"] = "Usuario editado correctamente";
+				return RedirectToAction(vista);
+			}
+			catch (Exception ex)
+			{
+				logger.LogError(ex, "Error al editar el usuario");
+				throw;
+			}
+		}
+
+		// GET: Usuarios/Delete/5
+		[Authorize(Policy = "Administrador")]
+		public ActionResult Delete(int id)
+		{
+			var entidad = repositorio.ObtenerPorId(id);
+            if (entidad == null)
+            {
+                return NotFound();
+            }
+            return View(entidad);
+		}
+
+		// POST: Usuarios/Delete/5
+		[HttpPost]
+		[ValidateAntiForgeryToken]
+		[Authorize(Policy = "Administrador")]
+		public ActionResult Delete(int id, Usuario usuario)
+		{
+			try
+			{
+				var ruta = Path.Combine(environment.WebRootPath, "Uploads", $"avatar_{id}" + Path.GetExtension(usuario.Avatar));
+				if (System.IO.File.Exists(ruta))
+					System.IO.File.Delete(ruta);
+				repositorio.Baja(id);
+				return RedirectToAction(nameof(Index));
+			}
+			catch(Exception ex)
+			{
+				logger.LogError(ex, "Error al eliminar el usuario");
+				return RedirectToAction(nameof(Delete));
+			}
+		}
+
+		[Authorize]
+		public IActionResult Avatar()
+		{
+			var u = repositorio.ObtenerPorId(this.UsuarioId());
+			if (u == null || string.IsNullOrEmpty(u.Avatar))
+				return NotFound();
+			string fileName = "avatar_" + u.IdUsuario + Path.GetExtension(u.Avatar);
+			string wwwPath = environment.WebRootPath;
+			string path = Path.Combine(wwwPath, "Uploads");
+			string pathCompleto = Path.Combine(path, fileName);
+
+			//leer el archivo
+			byte[] fileBytes = System.IO.File.ReadAllBytes(pathCompleto);
+			//devolverlo
+			return File(fileBytes, System.Net.Mime.MediaTypeNames.Application.Octet, fileName);
+		}
+
+		[Authorize]
+		public string AvatarBase64()
+		{
+			var u = repositorio.ObtenerPorId(this.UsuarioId());
+			if (u == null || string.IsNullOrEmpty(u.Avatar))
+				return "";
+			string fileName = "avatar_" + u.IdUsuario + Path.GetExtension(u.Avatar);
+			string wwwPath = environment.WebRootPath;
+			string path = Path.Combine(wwwPath, "Uploads");
+			string pathCompleto = Path.Combine(path, fileName);
+
+			//leer el archivo
+			byte[] fileBytes = System.IO.File.ReadAllBytes(pathCompleto);
+			//devolverlo
+			return Convert.ToBase64String(fileBytes);
+		}
+
+		[Authorize]
+		[HttpPost("[controller]/[action]/{fileName}")]
+		public IActionResult FromBase64([FromBody] string imagen, [FromRoute] string fileName)
+		{
+			//arma el path
+			string wwwPath = environment.WebRootPath;
+			string path = Path.Combine(wwwPath, "Uploads");
+			string pathCompleto = Path.Combine(path, fileName);
+			//convierto a arreglo de bytes
+			var bytes = Convert.FromBase64String(imagen);
+			//lo escribe
+			System.IO.File.WriteAllBytes(pathCompleto, bytes);
+			return Ok();
+		}
+
+		[Authorize]
+		public ActionResult Foto()
+		{
+			try
+			{
+				var u = repositorio.ObtenerPorId(this.UsuarioId());
+				if (u == null || string.IsNullOrEmpty(u.Avatar))
+					return NotFound();
+				var stream = System.IO.File.Open(
+						Path.Combine(environment.WebRootPath, u.Avatar.Substring(1)),
+						FileMode.Open,
+						FileAccess.Read);
+				var ext = Path.GetExtension(u.Avatar);
+				return new FileStreamResult(stream, $"image/{ext.Substring(1)}");
+			}
+			catch (Exception ex)
+			{
+				logger.LogError(ex, "Error al obtener la foto");
+				throw;
+			}
+		}
+
+		[AllowAnonymous]
+		// GET: Usuarios/Login/
+		public ActionResult Login(string returnUrl)
+		{
+			TempData["returnUrl"] = returnUrl;
+			return View();
+		}
+
+		// POST: Usuarios/Login/
+		[HttpPost]
+		[AllowAnonymous]
+		[ValidateAntiForgeryToken]
+		public async Task<IActionResult> Login(LoginView login)
+		{
+			try
+			{
+				var returnUrl = String.IsNullOrEmpty(TempData["returnUrl"] as string) ? "/Home" : (TempData["returnUrl"] ?? "").ToString();
+				if (ModelState.IsValid)
+				{
+					string hashed = Convert.ToBase64String(KeyDerivation.Pbkdf2(
+						password: login.Clave,
+						salt: System.Text.Encoding.ASCII.GetBytes(configuration["Salt"] ?? ""),
+						prf: KeyDerivationPrf.HMACSHA1,
+						iterationCount: 1000,
+						numBytesRequested: 256 / 8));
+
+					var e = repositorio.ObtenerPorEmail(login.Usuario);
+					if (e == null || e.Clave != hashed)
+					{
+						ModelState.AddModelError("", "El email o la clave no son correctos");
+						TempData["returnUrl"] = returnUrl;
+						return View();
+					}
+
+					var claims = new List<Claim>
+					{
+						// Identificador estable: es el que se usa para consultar (clave primaria).
+						new Claim(ClaimTypes.NameIdentifier, e.IdUsuario.ToString()),
+						new Claim(ClaimTypes.Name, e.Email),
+						new Claim("FullName", e.Nombre + " " + e.Apellido),
+						new Claim(ClaimTypes.Role, e.RolNombre),
+					};
+
+					// Los dos últimos parámetros eligen qué claim es el "nombre" (User.Identity.Name)
+					// y cuál el "rol" (User.IsInRole). Es el equivalente, para la cookie, de
+					// TokenValidationParameters.NameClaimType/RoleClaimType del JWT (ver Program.cs).
+					// Con esto User.Identity.Name devuelve el Id, no el email.
+					var claimsIdentity = new ClaimsIdentity(
+							claims, CookieAuthenticationDefaults.AuthenticationScheme,
+							ClaimTypes.NameIdentifier, ClaimTypes.Role);
+
+					await HttpContext.SignInAsync(
+							CookieAuthenticationDefaults.AuthenticationScheme,
+							new ClaimsPrincipal(claimsIdentity));
+					TempData.Remove("returnUrl");
+					return Redirect(returnUrl ?? "/");
+				}
+				TempData["returnUrl"] = returnUrl;
+				return View();
+			}
+			catch (Exception ex)
+			{
+				ModelState.AddModelError("", ex.Message);
+				return View();
+			}
+		}
+
+		// GET: /salir
+		[Route("salir", Name = "logout")]
+		public async Task<ActionResult> Logout()
+		{
+			await HttpContext.SignOutAsync(
+					CookieAuthenticationDefaults.AuthenticationScheme);
+			return RedirectToAction("Index", "Home");
+		}
+	}
+}
