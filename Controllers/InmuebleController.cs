@@ -1,4 +1,5 @@
 using inmobiliaria_airbnb.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace inmobiliaria_airbnb.Controllers
@@ -17,6 +18,7 @@ namespace inmobiliaria_airbnb.Controllers
         }
 
         //GET: Inmuebles/index
+        [Authorize(Roles="Empleado, Administrador")]
         public ActionResult Index(int pagina = 1)
         {
             try
@@ -42,6 +44,7 @@ namespace inmobiliaria_airbnb.Controllers
         }
 
         //GET: Inmuebles/Create
+        [Authorize(Roles="Administrador")]
         public ActionResult Create()
         {
             try
@@ -56,6 +59,7 @@ namespace inmobiliaria_airbnb.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles="Administrador")]
         public ActionResult Create(Inmueble i)
         {
             try
@@ -73,6 +77,7 @@ namespace inmobiliaria_airbnb.Controllers
         }
 
         //GET: Inmuebles/Edit
+        [Authorize(Roles="Administrador")]
         public ActionResult Edit(int id)
         {
             try
@@ -89,6 +94,7 @@ namespace inmobiliaria_airbnb.Controllers
 
         //POST: Inmuebles/Edit
         [HttpPost]
+        [Authorize(Roles="Administrador")]
         public ActionResult Edit(int id, Inmueble inmueble)
         {
             try
@@ -120,6 +126,7 @@ namespace inmobiliaria_airbnb.Controllers
         }
 
         //GET: Inmuebles/Delete
+        [Authorize(Roles="Administrador")]
         public ActionResult Delete(int id)
         {
             try
@@ -136,6 +143,7 @@ namespace inmobiliaria_airbnb.Controllers
 
         //POST: Inmuebles/Delete
         [HttpPost]
+        [Authorize(Roles="Administrador")]
         public ActionResult Delete(int id, Inquilino entidad)
         {
             try
@@ -153,6 +161,7 @@ namespace inmobiliaria_airbnb.Controllers
         }
 
         // GET: Inmuebles/Imagenes/5
+        [Authorize(Roles="Administrador")]
 		public ActionResult Imagenes(int id, [FromServices] IRepositorioImagen repoImagen)
 		{
 			var entidad = repositorio.ObtenerPorId(id);
@@ -164,6 +173,7 @@ namespace inmobiliaria_airbnb.Controllers
 
 		// POST: Inmuebles/Portada
 		[HttpPost]
+        [Authorize(Roles="Administrador")]
 		public ActionResult Portada(Imagen entidad, [FromServices] IWebHostEnvironment environment)
 		{
 			try
@@ -213,6 +223,7 @@ namespace inmobiliaria_airbnb.Controllers
 		}
 
         [HttpGet]
+        [Authorize(Roles="Administrador")]
         public ActionResult PorPropietario(int id, int pagina = 1)
         {
             try
@@ -241,6 +252,7 @@ namespace inmobiliaria_airbnb.Controllers
     
         //TODO: Agregar return en exceptions
         [HttpGet]
+        [Authorize(Roles="Administrador")]
         public ActionResult Habilitados(int pagina = 1, int tamPagina = 10)
         {
             try
@@ -258,6 +270,7 @@ namespace inmobiliaria_airbnb.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles="Administrador")]
         public ActionResult MasReservados365(int pagina = 1, int tamPagina = 10)
         {
             try
@@ -275,6 +288,7 @@ namespace inmobiliaria_airbnb.Controllers
         }
         //GET: Inmuebles/InmuebleSinReservas
         [HttpGet]
+        [Authorize(Roles="Administrador")]
         public ActionResult InmuebleSinReservas(int dias, int pagina = 1, int tamPagina = 10)
         {
             try
@@ -292,6 +306,7 @@ namespace inmobiliaria_airbnb.Controllers
         }
         //GET: Inmuebles/SinReservasPorFecha
         [HttpGet]
+        [Authorize(Roles="Administrador")]
         public ActionResult SinReservasPorFecha(DateTime fechaDesde, DateTime fechaHasta, int paginaNro = 1, int tamPagina = 10)
         {
             try

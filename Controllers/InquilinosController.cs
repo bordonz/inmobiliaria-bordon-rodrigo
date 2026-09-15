@@ -1,4 +1,5 @@
 using inmobiliaria_airbnb.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace inmobiliaria_airbnb.Controllers
@@ -17,6 +18,7 @@ namespace inmobiliaria_airbnb.Controllers
         }
 
         //GET: Inquilinos/Index
+        [Authorize(Roles="Empleado, Administrador")]
         public ActionResult Index(int pagina = 1)
         {
             try
@@ -39,6 +41,7 @@ namespace inmobiliaria_airbnb.Controllers
         }
 
         // GET: Inquilinos/Create
+        [Authorize(Roles="Administrador")]
 		public ActionResult Create()
 		{
 			try
@@ -54,6 +57,7 @@ namespace inmobiliaria_airbnb.Controllers
         
         // POST: Inquilinos/Create
         [HttpPost]
+        [Authorize(Roles="Administrador")]
         public ActionResult Create(Inquilino inquilino)
         {
             try
@@ -71,6 +75,7 @@ namespace inmobiliaria_airbnb.Controllers
         }
 
         //GET: Inquilinos/Edit
+        [Authorize(Roles="Administrador")]
         public ActionResult Edit(int id)
         {
             try
@@ -86,6 +91,7 @@ namespace inmobiliaria_airbnb.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles="Administrador")]
         public ActionResult Edit(int id, Inquilino entidad)
         {
             try
@@ -112,6 +118,7 @@ namespace inmobiliaria_airbnb.Controllers
         }
 
         //GET: Propietarios/Delete/id
+        [Authorize(Roles="Administrador")]
         public ActionResult Delete(int id)
         {
             try
@@ -127,6 +134,7 @@ namespace inmobiliaria_airbnb.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles="Administrador")]
         public ActionResult Delete(int id, Inquilino entidad)
         {
             try

@@ -1,9 +1,11 @@
 using inmobiliaria_airbnb;
 using inmobiliaria_airbnb.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Inmobiliaria.Controllers;
 
+[Authorize(Roles="Administrador")]
 public class TiposInmuebleController : Controller
 {
     private readonly IRepositorioTiposInmuebles repositorio;

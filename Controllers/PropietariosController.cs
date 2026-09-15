@@ -1,9 +1,11 @@
 using inmobiliaria_airbnb.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 using Microsoft.AspNetCore.Mvc;
 
 namespace inmobiliaria_airbnb.Controllers
 {
+    [Authorize(Roles="Administrador")]
     public class PropietariosController : Controller
     {
         private readonly IRepositorioPropietario repositorio;
@@ -32,7 +34,7 @@ namespace inmobiliaria_airbnb.Controllers
 				return View(lista);
 			}
 			catch (Exception ex)
-			{// Poner breakpoints para detectar errores
+			{
 				logger.LogError(ex, "Error en Index de Propietarios");
 				throw;
 			}

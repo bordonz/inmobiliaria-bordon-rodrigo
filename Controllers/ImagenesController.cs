@@ -1,4 +1,5 @@
 using inmobiliaria_airbnb.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace inmobiliaria_airbnb.Controllers
@@ -13,6 +14,7 @@ namespace inmobiliaria_airbnb.Controllers
 		}
 		[HttpPost]
 		[Route("Imagenes/Alta/{id}")] 
+		[Authorize(Roles="Administrador")]
 		public async Task<IActionResult> Alta(int id, List<IFormFile> imagenes, [FromServices] IWebHostEnvironment environment)
 		{
 			if (imagenes == null || imagenes.Count == 0)
@@ -60,6 +62,7 @@ namespace inmobiliaria_airbnb.Controllers
 		// POST: Inmueble/Eliminar/5
 		[HttpPost]
 		[Route("Imagenes/Eliminar/{id}")] 
+		[Authorize(Roles="Administrador")]
 		public ActionResult Eliminar(int id, [FromServices] IWebHostEnvironment environment)
 		{
 			try
