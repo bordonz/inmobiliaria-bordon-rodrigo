@@ -20,11 +20,17 @@ namespace inmobiliaria_airbnb.Models
         public decimal Monto { get; set; }
         [Required]
         public string Estado { get; set; }
-        [Display(Name = "Nº Inmueble")]
+        [Display(Name = "Nº Reserva")]
         [Required]
         public int ReservaId { get; set; }
         [ForeignKey(nameof(ReservaId))]
         [BindNever]
         public Reserva? Reserva { get; set; }
+
+        public int? IdUsuarioCreador { get; set; }
+        public int? IdUsuarioAnulador { get; set; }
+
+        public Usuario UsuarioCreador { get; set; }
+        public Usuario? UsuarioAnulador { get; set; }
     }
 }

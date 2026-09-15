@@ -14,8 +14,8 @@ namespace inmobiliaria_airbnb.Models
                 using (MySqlConnection connection = new MySqlConnection(connectionString))
                 {
                     string sql = @"INSERT INTO Pagos
-                        (id_pago, concepto, fecha_pago, monto, estado, reserva_id)
-                        VALUES (@id_pago, @concepto, @fecha_pago, @monto, estado, @reserva_id);
+                        (id_pago, concepto, fecha_pago, monto, estado, reserva_id, id_usuario_creador)
+                        VALUES (@id_pago, @concepto, @fecha_pago, @monto, @estado, @reserva_id, @id_usuario_creador);
                         SELECT LAST_INSERT_ID();";
                     using (MySqlCommand command = new MySqlCommand(sql, connection))
                     {
@@ -25,6 +25,7 @@ namespace inmobiliaria_airbnb.Models
                         command.Parameters.AddWithValue("@monto", p.Monto);
                         command.Parameters.AddWithValue("@estado", p.Estado);
                         command.Parameters.AddWithValue("@reserva_id", p.ReservaId);
+                        command.Parameters.AddWithValue("@id_usuario_creador", p.IdUsuarioCreador);
                         connection.Open();
                         res = Convert.ToInt32(command.ExecuteScalar());
                         p.IdPago = res;
@@ -38,7 +39,7 @@ namespace inmobiliaria_airbnb.Models
                 int res = -1;
                 using (MySqlConnection connection = new MySqlConnection(connectionString))
                 {
-                    string estado = "Anulado";
+                    string estado = "Cancelado";
                     string sql = @"UPDATE Pagos
                         SET estado=@estado 
                         WHERE id_pago = @id";
@@ -64,6 +65,7 @@ namespace inmobiliaria_airbnb.Models
                     using (MySqlCommand command = new MySqlCommand(sql, connection))
                     {
                         command.Parameters.AddWithValue("@concepto", p.Concepto);
+                        command.Parameters.AddWithValue("@id", p.IdPago);
                         connection.Open();
                         res = command.ExecuteNonQuery();
                     }
@@ -148,7 +150,12 @@ namespace inmobiliaria_airbnb.Models
                                 FechaPago = reader.GetDateTime("fecha_pago"),
                                 Monto = reader.GetDecimal("monto"),
                                 Estado = reader.GetString("estado"),
-                                ReservaId = reader.GetInt32("reserva_id")
+                                ReservaId = reader.GetInt32("reserva_id"),
+                                IdUsuarioCreador = reader["id_usuario_creador"] == DBNull.Value 
+                                ? null : (int?)Convert.ToInt32(reader["id_usuario_creador"]),
+                                IdUsuarioAnulador = reader["id_usuario_anulador"] == DBNull.Value 
+                                ? null 
+                                : (int?)Convert.ToInt32(reader["id_usuario_anulador"]),
                             };
                         }
                     }

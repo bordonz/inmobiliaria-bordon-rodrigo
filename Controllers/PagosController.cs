@@ -1,4 +1,6 @@
+using System.Security.Claims;
 using inmobiliaria_airbnb.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace inmobiliaria_airbnb.Controllers
@@ -17,6 +19,7 @@ namespace inmobiliaria_airbnb.Controllers
         }
 
         //GET: Pagos/Index
+        [Authorize(Roles="Empleado, Administrador")]
         public ActionResult Index(int pagina = 1)
         {
             try
@@ -42,6 +45,7 @@ namespace inmobiliaria_airbnb.Controllers
         }
 
         //GET: Pagos/Create
+        [Authorize(Roles="Empleado, Administrador")]
         public ActionResult Create()
         {
             try
@@ -61,10 +65,12 @@ namespace inmobiliaria_airbnb.Controllers
 
         //POST: Pagos/Create
         [HttpPost]
+        [Authorize(Roles="Empleado, Administrador")]
         public ActionResult Create(Pago p)
         {
             try
             {
+                p.IdUsuarioCreador = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
                 repositorio.Alta(p);
                 TempData["Id"] = p.IdPago;
                 return RedirectToAction(nameof(Index));
@@ -78,6 +84,7 @@ namespace inmobiliaria_airbnb.Controllers
         }
 
         //GET: Pagos/Edit
+        [Authorize(Roles="Empleado, Administrador")]
         public ActionResult Edit(int id)
         {
             try
@@ -98,15 +105,12 @@ namespace inmobiliaria_airbnb.Controllers
 
         //POST: Pagos/Edit
         [HttpPost]
+        [Authorize(Roles="Empleado, Administrador")]
         public ActionResult Edit(int id, Pago pago)
         {
             try
             {
                 var p = repositorio.ObtenerPorId(id);
-                if(p == null)
-                {
-                    return NotFound();
-                }
                 p.Concepto = pago.Concepto;
                 repositorio.Modificacion(p);
                 TempData["Mensaje"] = "Concepto de pago editado exitosamente";
@@ -121,6 +125,7 @@ namespace inmobiliaria_airbnb.Controllers
         }
 
         //GET: Pagos/Delete
+        [Authorize(Roles="Empleado, Administrador")]
         public ActionResult Delete(int id)
         {
             try
@@ -141,10 +146,12 @@ namespace inmobiliaria_airbnb.Controllers
 
         //POST: Pagos/Delete
         [HttpPost]
+        [Authorize(Roles="Empleado, Administrador")]
         public ActionResult Delete(int id, Pago pago)
         {
             try
             {
+                pago.IdUsuarioAnulador = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
                 repositorio.Baja(id);
                 TempData["Mensaje"] = "Cambio de estado del pago exitoso";
                 return RedirectToAction(nameof(Index));
@@ -154,6 +161,26 @@ namespace inmobiliaria_airbnb.Controllers
                 logger.LogError(ex, "Error en Delete de PagosController");
                 TempData["Error"] = "Error al cambiar estado de pago";
                 return RedirectToAction(nameof(Delete));
+            }
+        }
+
+        //GET: Pagos/Auditoria
+        [Authorize(Roles="Administrador")]
+        public ActionResult Auditoria(int id)
+        {
+            try
+            {
+                var entidad = repositorio.ObtenerPorId(id);
+                if (TempData.ContainsKey("Error"))
+                {
+                    ViewBag.Mensaje = TempData["Error"];
+                }
+                return View(entidad);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error en Auditoria de PagosController");
+                throw;
             }
         }
     }
