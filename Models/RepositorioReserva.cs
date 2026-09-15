@@ -14,8 +14,9 @@ namespace inmobiliaria_airbnb.Models
             using (MySqlConnection connection = new MySqlConnection(connectionString))
             {
                 string sql = @"INSERT INTO Reservas
-                    (estado, monto, fecha_desde, fecha_hasta, inmueble_id, inquilino_id)
-                    VALUES (@estado, @monto, @fecha_desde, @fecha_hasta, @inmueble_id, @inquilino_id);
+                    (estado, monto, fecha_desde, fecha_hasta, inmueble_id, inquilino_id,
+                    id_usuario_creador)
+                    VALUES (@estado, @monto, @fecha_desde, @fecha_hasta, @inmueble_id, @inquilino_id, @id_usuario_creador);
                     SELECT LAST_INSERT_ID();";
                 using (MySqlCommand command = new MySqlCommand(sql, connection))
                 {
@@ -25,6 +26,7 @@ namespace inmobiliaria_airbnb.Models
                     command.Parameters.AddWithValue("@fecha_hasta", r.FechaHasta);
                     command.Parameters.AddWithValue("@inmueble_id", r.InmuebleId);
                     command.Parameters.AddWithValue("@inquilino_id", r.InquilinoId);
+                    command.Parameters.AddWithValue("@id_usuario_creador", r.IdUsuarioCreador);
                     connection.Open();
                     res = Convert.ToInt32(command.ExecuteScalar());
                     r.IdReserva = res;
@@ -56,7 +58,7 @@ namespace inmobiliaria_airbnb.Models
             {
                 string sql = @"UPDATE Reservas
                     SET estado=@estado, monto=@monto, fecha_desde=@fecha_desde, fecha_hasta=@fecha_hasta,
-                        inmueble_id=@inmueble_id, inquilino_id=@inquilino_id
+                        inmueble_id=@inmueble_id, inquilino_id=@inquilino_id, id_usuario_finalizador=@id_usuario_finalizador
                     WHERE id_reserva = @id";
                 using (MySqlCommand command = new MySqlCommand(sql, connection))
                 {
@@ -66,6 +68,7 @@ namespace inmobiliaria_airbnb.Models
                     command.Parameters.AddWithValue("@fecha_hasta", r.FechaHasta);
                     command.Parameters.AddWithValue("@inmueble_id", r.InmuebleId);
                     command.Parameters.AddWithValue("@inquilino_id", r.InquilinoId);
+                    command.Parameters.AddWithValue("@id_usuario_finalizador", r.IdUsuarioFinalizador);
                     command.Parameters.AddWithValue("@id", r.IdReserva);
                     connection.Open();
                     res = command.ExecuteNonQuery();
@@ -74,7 +77,6 @@ namespace inmobiliaria_airbnb.Models
             return res;
         }
 
-        //TODO: Al hacer create y redirigir aca se queja de que el id del pago es null
         public List<Reserva> ObtenerLista(int paginaNro = 1, int tamPagina = 10)
         {
             List<Reserva> res = new List<Reserva>();
@@ -255,7 +257,7 @@ namespace inmobiliaria_airbnb.Models
             using (MySqlConnection connection = new MySqlConnection(connectionString))
             {
                 string sql = @"SELECT r.id_reserva, r.estado, r.monto, r.fecha_desde, r.fecha_hasta,
-                    r.inmueble_id, r.inquilino_id,
+                    r.inmueble_id, r.inquilino_id, r.id_usuario_creador, r.id_usuario_finalizador,
                     p.nombre AS propietario_nombre, p.apellido AS propietario_apellido, 
                     i.nombre AS inquilino_nombre, i.apellido AS inquilino_apellido, pa.concepto,
                     pa.fecha_pago, pa.monto
@@ -281,6 +283,11 @@ namespace inmobiliaria_airbnb.Models
                             FechaDesde = reader.GetDateTime("fecha_desde"),
                             FechaHasta = reader.GetDateTime("fecha_hasta"),
                             InmuebleId = reader.GetInt32("inmueble_id"),
+                            IdUsuarioCreador = reader["id_usuario_creador"] == DBNull.Value 
+                                ? null : (int?)Convert.ToInt32(reader["id_usuario_creador"]),
+                            IdUsuarioFinalizador = reader["id_usuario_finalizador"] == DBNull.Value 
+                            ? null 
+                            : (int?)Convert.ToInt32(reader["id_usuario_finalizador"]),
                             Inmueble = new Inmueble
                             {
                                 Duenio = new Propietario
@@ -297,9 +304,15 @@ namespace inmobiliaria_airbnb.Models
                             },
                             Pago = new Pago
                             {
-                                Concepto = reader.GetString("concepto"),
-                                FechaPago = reader.GetDateTime("fecha_pago"),
-                                Monto = reader.GetDecimal("monto")
+                                Concepto = reader.IsDBNull(reader.GetOrdinal("concepto")) 
+                                    ? "Sin concepto" 
+                                    : reader.GetString("concepto"),
+                                FechaPago = reader.IsDBNull(reader.GetOrdinal("fecha_pago")) 
+                                    ? DateTime.MinValue 
+                                    : reader.GetDateTime("fecha_pago"),
+                                Monto = reader.IsDBNull(reader.GetOrdinal("monto")) 
+                                    ? 0 
+                                    : reader.GetDecimal("monto")
                             }
                         };
                     }

@@ -1,4 +1,6 @@
+using System.Security.Claims;
 using inmobiliaria_airbnb.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace inmobiliaria_airbnb.Controllers
@@ -17,6 +19,7 @@ namespace inmobiliaria_airbnb.Controllers
         }
 
     //GET: Reservas/index
+    [Authorize(Roles="Empleado, Administrador")]
     public ActionResult Index(int pagina = 1)
         {
             try
@@ -42,6 +45,7 @@ namespace inmobiliaria_airbnb.Controllers
         }
 
         //GET: Reservas/index
+        [Authorize(Roles="Empleado, Administrador")]
         public ActionResult PagosReservas(int id, int pagina = 1)
         {
             try
@@ -67,6 +71,7 @@ namespace inmobiliaria_airbnb.Controllers
         }
 
         //GET: Reservas/Create
+        [Authorize(Roles="Empleado, Administrador")]
         public ActionResult Create()
         {
             try
@@ -85,10 +90,12 @@ namespace inmobiliaria_airbnb.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles="Empleado, Administrador")]
         public ActionResult Create(Reserva r)
         {
             try
             {
+                r.IdUsuarioCreador = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
                 repositorio.Alta(r);
                 TempData["Id"] = r.IdReserva;
                 return RedirectToAction(nameof(Index));
@@ -102,6 +109,7 @@ namespace inmobiliaria_airbnb.Controllers
         }
 
         //GET: Reservas/Edit
+        [Authorize(Roles="Empleado, Administrador")]
         public ActionResult Edit(int id)
         {
             try
@@ -122,34 +130,48 @@ namespace inmobiliaria_airbnb.Controllers
 
         //POST: Reservas/Edit
         [HttpPost]
+        [Authorize(Roles="Empleado,Administrador")]
         public ActionResult Edit(int id, Reserva reserva)
         {
             try
             {
                 var r = repositorio.ObtenerPorId(id);
-                if(r == null)
+                if (r == null)
                 {
                     return NotFound();
                 }
-                r.Estado = reserva.Estado;
-                r.Monto = reserva.Monto;
-                r.FechaDesde = reserva.FechaDesde;
-                r.FechaHasta = reserva.FechaHasta;
-                r.InmuebleId = reserva.InmuebleId;
-                r.InquilinoId = reserva.InquilinoId;
+
+                if (User.IsInRole("Administrador"))
+                {
+                    // Admin puede modificar todo
+                    r.Estado = reserva.Estado;
+                    r.Monto = reserva.Monto;
+                    r.FechaDesde = reserva.FechaDesde;
+                    r.FechaHasta = reserva.FechaHasta;
+                    r.InmuebleId = reserva.InmuebleId;
+                    r.InquilinoId = reserva.InquilinoId;
+                }
+                else if (User.IsInRole("Empleado"))
+                {
+                    // Empleado solo puede cambiar el estado
+                    r.Estado = reserva.Estado;
+                }
+                r.IdUsuarioFinalizador = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
                 repositorio.Modificacion(r);
                 TempData["Mensaje"] = "Reserva editada exitosamente";
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error en Delete de Reservas");
+                logger.LogError(ex, "Error en Edit de Reservas");
                 TempData["Error"] = "Error al editar Reserva";
-                return RedirectToAction(nameof(Edit));
+                return RedirectToAction(nameof(Edit), new { id });
             }
         }
 
+
         //GET: Reservas/Delete
+        [Authorize(Roles="Administrador")]
         public ActionResult Delete(int id)
         {
             try
@@ -170,6 +192,7 @@ namespace inmobiliaria_airbnb.Controllers
 
         //POST: Reservas
         [HttpPost]
+        [Authorize(Roles="Administrador")]
         public ActionResult Delete(int id, Reserva reserva)
         {
             try
@@ -188,6 +211,7 @@ namespace inmobiliaria_airbnb.Controllers
 
         //GET: Reservas/FiltrarReservas
         [HttpGet]
+        [Authorize(Roles="Empleado, Administrador")]
         public ActionResult FiltrarReservas(DateTime fechaDesde, DateTime fechaHasta, int paginaNro = 1, int tamPagina = 10)
         {
             try
@@ -204,6 +228,7 @@ namespace inmobiliaria_airbnb.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles="Empleado, Administrador")]
         public ActionResult SinReservas(int dias, int pagina = 1, int tamPagina = 10)
         {
             try
@@ -216,6 +241,26 @@ namespace inmobiliaria_airbnb.Controllers
             {
                 logger.LogError(ex, "Error en SinReservas de ReservasController");
                 TempData["Error"] = "Error al listar reservas por terminar en x dias";
+                throw;
+            }
+        }
+
+        //GET: Reservas/Auditoria
+        [Authorize(Roles="Administrador")]
+        public ActionResult Auditoria(int id)
+        {
+            try
+            {
+                var entidad = repositorio.ObtenerPorId(id);
+                if (TempData.ContainsKey("Error"))
+                {
+                    ViewBag.Mensaje = TempData["Error"];
+                }
+                return View(entidad);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error en Auditoria de ReservasController");
                 throw;
             }
         }

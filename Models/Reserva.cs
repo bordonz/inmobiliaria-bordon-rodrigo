@@ -32,5 +32,11 @@ namespace inmobiliaria_airbnb.Models
         [ForeignKey(nameof(PagoId))]
         [BindNever]
         public Pago? Pago { get; set; }
+
+        public int? IdUsuarioCreador { get; set; }
+        public int? IdUsuarioFinalizador { get; set; }
+
+        public Usuario? UsuarioCreador { get; set; }
+        public Usuario? UsuarioFinalizador { get; set; }
     }
 }
