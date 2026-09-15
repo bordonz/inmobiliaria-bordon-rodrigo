@@ -21,22 +21,52 @@
     @RenderSection("Styles", required: false)
 </head>
 <body onload="init()">
+    @{
+		bool IsAuthenticated = User?.Identity?.IsAuthenticated ?? false;
+		@* Identity.Name ahora es el Id; para mostrar se usa el claim FullName *@
+		var NombreUsuario = User?.Claims.FirstOrDefault(c => c.Type == "FullName")?.Value ?? "";
+		var IsAdmin = User?.IsInRole("Administrador") ?? false;
+	}
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">inmobiliaria_airbnb</a>
+                @if (!IsAuthenticated)
+                {
+                    <a class="py-2" asp-controller="Home" asp-action="Index"><i class="fa-solid fa-house"></i> Inicio</a>
+					<a href="@Url.Action("Login", "Usuarios")"><i class="fa-solid fa-right-to-bracket"></i> Acceder</a>
+                }
+                else 
+                {
+                    <div class="dropdown">
+						<a class="btn btn-primary dropdown-toggle text-light" href="/home" role="button" id="homeMenu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-reference="parent" data-display="static">
+							<i class="fa-solid fa-house"></i> Inicio
+						</a>
+						<div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+							<a class="dropdown-item text-dark" asp-controller="Home" asp-action="Index"><i class="fa-solid fa-house"></i> Inicio</a>
+							<a class="dropdown-item text-dark" asp-controller="Home" asp-action="Seguro"><i class="fa-solid fa-id-card"></i> Claims</a>
+							<a class="dropdown-item text-dark" asp-controller="Home" asp-action="Fecha" 
+								asp-route-anio="@DateTime.Today.Year" asp-route-mes="@DateTime.Today.Month" asp-route-dia="@DateTime.Today.Day">
+								<i class="fa-solid fa-calendar-check"></i> Fecha
+							</a>
+						</div>
+					</div>
+                @if (IsAdmin)
+                {
+                    <a class="py-2 d-none d-md-inline-block" asp-controller="Usuarios" asp-action="Index"><i class="fa-solid fa-user"></i> Usuarios</a>
+                }
+                @* <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">inmobiliaria_airbnb</a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
-                </button>
+                </button> *@
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
+                        @* <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
+                        </li> *@
                         <li class="nav-item">
                             <a class="nav-link" asp-controller="Propietarios" asp-action="Index">Propietarios</a>
                         </li>
@@ -55,8 +85,25 @@
                         <li class="nav-item">
                             <a class="nav-link" asp-controller="TiposInmueble" asp-action="Index">Tipos de inmueble</a>
                         </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle text-dark"
+                                href="@Url.Action("Perfil", "Usuarios")"
+                                id="userMenu"
+                                role="button"
+                                data-toggle="dropdown"
+                                aria-haspopup="true"
+                                aria-expanded="false">
+                                <i class="fa-solid fa-user"></i> @NombreUsuario
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" asp-controller="Usuarios" asp-action="Logout">
+                                <i class="fa-solid fa-right-from-bracket"></i> Salir
+                            </a>
+                        </li>
                     </ul>
                 </div>
+                }
             </div>
         </nav>
     </header>
@@ -129,6 +176,9 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/i18n/es.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
     @RenderSection("Scripts",false)
 </body>
 </html>
