@@ -19,31 +19,34 @@
                 </select>
 				<span asp-validation-for="Estado" class="text-danger"></span>
 			</div>
-			<div class="form-group">
-				<label asp-for="Monto" class="control-label"></label>
-				<input asp-for="Monto" class="form-control" />
-				<span asp-validation-for="Monto" class="text-danger"></span>
-			</div>
-			<div class="form-group">
-				<label asp-for="FechaDesde" class="control-label"></label>
-				<input asp-for="FechaDesde" class="form-control" />
-				<span asp-validation-for="FechaDesde" class="text-danger"></span>
-			</div>
-			<div class="form-group">
-				<label asp-for="FechaHasta" class="control-label"></label>
-				<input asp-for="FechaHasta" class="form-control" />
-				<span asp-validation-for="FechaHasta" class="text-danger"></span>
-			</div>
-			<div class="form-group">
-				<label asp-for="InmuebleId" class="control-label"></label>
-				<input asp-for="InmuebleId" class="form-control" />
-				<span asp-validation-for="InmuebleId" class="text-danger"></span>
-			</div>
-            <div class="form-group">
-				<label asp-for="InquilinoId" class="control-label"></label>
-				<input asp-for="InquilinoId" class="form-control" />
-				<span asp-validation-for="InquilinoId" class="text-danger"></span>
-			</div>
+			@if (User.IsInRole("Administrador"))
+			{
+				<div class="form-group">
+					<label asp-for="Monto" class="control-label"></label>
+					<input asp-for="Monto" class="form-control" />
+					<span asp-validation-for="Monto" class="text-danger"></span>
+				</div>
+				<div class="form-group">
+					<label asp-for="FechaDesde" class="control-label"></label>
+					<input asp-for="FechaDesde" class="form-control" />
+					<span asp-validation-for="FechaDesde" class="text-danger"></span>
+				</div>
+				<div class="form-group">
+					<label asp-for="FechaHasta" class="control-label"></label>
+					<input asp-for="FechaHasta" class="form-control" />
+					<span asp-validation-for="FechaHasta" class="text-danger"></span>
+				</div>
+				<div class="form-group">
+					<label asp-for="InmuebleId" class="control-label"></label>
+					<input asp-for="InmuebleId" class="form-control" />
+					<span asp-validation-for="InmuebleId" class="text-danger"></span>
+				</div>
+				<div class="form-group">
+					<label asp-for="InquilinoId" class="control-label"></label>
+					<input asp-for="InquilinoId" class="form-control" />
+					<span asp-validation-for="InquilinoId" class="text-danger"></span>
+				</div>
+			}
 			<div class="form-group">
 				<input type="submit" value="Guardar" class="btn btn-primary" />
 			</div>
