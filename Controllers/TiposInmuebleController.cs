@@ -57,10 +57,16 @@ public class TiposInmuebleController : Controller
         
         // POST: TipoInmueble/Create
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Create(TipoInmueble tipo)
         {
             try
             {
+                if (!ModelState.IsValid)
+                {
+                    return View(tipo);
+                }
+
                 repositorio.Alta(tipo);
                 TempData["Id"] = tipo.IdTipoInmueble;
                 return RedirectToAction(nameof(Index));
@@ -89,10 +95,16 @@ public class TiposInmuebleController : Controller
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Edit(int id, TipoInmueble entidad)
         {
             try
             {
+                if (!ModelState.IsValid)
+                {
+                    return View(entidad);
+                }
+
                 var t = repositorio.ObtenerPorId(id);
                 if(t == null)
                     return NotFound();
@@ -126,10 +138,15 @@ public class TiposInmuebleController : Controller
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Delete(int id, TipoInmueble entidad)
         {
             try
             {
+                var t = repositorio.ObtenerPorId(id);
+                if (t == null)
+                    return NotFound();
+
                 repositorio.Baja(id);
                 TempData["Mensaje"] = "tipo de inmueble eliminado correctamente";
                 return RedirectToAction(nameof(Index));

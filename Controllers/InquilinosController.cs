@@ -57,11 +57,17 @@ namespace inmobiliaria_airbnb.Controllers
         
         // POST: Inquilinos/Create
         [HttpPost]
+        [ValidateAntiForgeryToken]
         [Authorize(Roles="Administrador")]
         public ActionResult Create(Inquilino inquilino)
         {
             try
             {
+                if (!ModelState.IsValid)
+                {
+                    return View(inquilino);
+                }
+
                 repositorio.Alta(inquilino);
                 TempData["Id"] = inquilino.IdInquilino;
                 return RedirectToAction(nameof(Index));
@@ -70,7 +76,7 @@ namespace inmobiliaria_airbnb.Controllers
             {
                 logger.LogError(ex, "Error en Create de inquilinos");
                 TempData["Error"] = "Error al crear inquilino";
-                throw;
+                return View(inquilino);
             }
         }
 
@@ -91,11 +97,17 @@ namespace inmobiliaria_airbnb.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         [Authorize(Roles="Administrador")]
         public ActionResult Edit(int id, Inquilino entidad)
         {
             try
             {
+                if (!ModelState.IsValid)
+                {
+                    return View(entidad);
+                }
+
                 var i = repositorio.ObtenerPorId(id);
                 if(i == null)
                     return NotFound();
@@ -113,7 +125,7 @@ namespace inmobiliaria_airbnb.Controllers
             {
                 logger.LogError(ex, "Error en Edit de inquilinos");
                 TempData["Error"] = "Error al editar inquilino";
-				throw;
+				return View(entidad);
             }
         }
 
@@ -134,6 +146,7 @@ namespace inmobiliaria_airbnb.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         [Authorize(Roles="Administrador")]
         public ActionResult Delete(int id, Inquilino entidad)
         {
@@ -147,7 +160,7 @@ namespace inmobiliaria_airbnb.Controllers
             {
                 logger.LogError(ex, "Error en Delete de inquilino");
                 TempData["Error"] = "Error al borrar inquilino";
-                throw;
+                return RedirectToAction(nameof(Index));
             }
         }
     }

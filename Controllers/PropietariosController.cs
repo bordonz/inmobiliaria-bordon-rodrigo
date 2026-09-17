@@ -56,10 +56,16 @@ namespace inmobiliaria_airbnb.Controllers
         
         // POST: Propietarios/Create
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Create(Propietario propietario)
         {
             try
             {
+                if (!ModelState.IsValid)
+                {
+                    return View(propietario);
+                }
+
                 propietario.Clave = Convert.ToBase64String(KeyDerivation.Pbkdf2(
                     password: propietario.Clave,
                     salt: System.Text.Encoding.ASCII.GetBytes(config["Salt"]),
@@ -74,7 +80,7 @@ namespace inmobiliaria_airbnb.Controllers
             {
                 logger.LogError(ex, "Error en Create de Propietarios");
                 TempData["Error"] = "Error al crear el propietario";
-                throw;
+                return View(propietario);
             }
         }
 
@@ -94,10 +100,16 @@ namespace inmobiliaria_airbnb.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Edit(int id, Propietario entidad)
         {
             try
             {
+                if (!ModelState.IsValid)
+                {
+                    return View(entidad);
+                }
+
                 var p = repositorio.ObtenerPorId(id);
                 if(p == null)
                     return NotFound();
@@ -115,7 +127,7 @@ namespace inmobiliaria_airbnb.Controllers
             {
                 logger.LogError(ex, "Error en Edit de Propietarios");
                 TempData["Error"] = "Error al editar propietario";
-				throw;
+				return View(entidad);
             }
         }
 
@@ -135,10 +147,15 @@ namespace inmobiliaria_airbnb.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Delete(int id, Propietario entidad)
         {
             try
             {
+                var p = repositorio.ObtenerPorId(id);
+                if (p == null)
+                    return NotFound();
+
                 repositorio.Baja(id);
                 TempData["Mensaje"] = "Propietario eliminado correctamente";
                 return RedirectToAction(nameof(Index));
@@ -147,7 +164,7 @@ namespace inmobiliaria_airbnb.Controllers
             {
                 logger.LogError(ex, "Error en Delete de Propietarios");
                 TempData["Error"] = "Error al borrar propietario";
-                throw;
+                return RedirectToAction(nameof(Index));
             }
         }
 
@@ -168,17 +185,28 @@ namespace inmobiliaria_airbnb.Controllers
 
         //POST: Propietarios/CambiarPass
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult CambiarPass(int IdPropietario, string claveVieja, string claveNueva, string claveRepeticion)
         {
             try
             {
+                if (string.IsNullOrEmpty(claveVieja) || string.IsNullOrEmpty(claveNueva) || string.IsNullOrEmpty(claveRepeticion))
+                {
+                    TempData["Error"] = "Todos los campos son obligatorios";
+                    return RedirectToAction(nameof(Edit));
+                }
+
+
                 var propietario = repositorio.ObtenerPorId(IdPropietario);
+                if (propietario == null)
+                    return NotFound();
+
                 var claveHash = repositorio.Hashear(claveVieja);
 
                 if(propietario.Clave != claveHash)
                 {
                     TempData["Error"] = "La clave actual no es correcta";
-                    return RedirectToAction(nameof(Edit));
+                    return RedirectToAction(nameof(Edit), new { id = IdPropietario });
                 }
 
                 var res = repositorio.ValidarClave(IdPropietario, claveNueva, claveRepeticion);
@@ -191,14 +219,14 @@ namespace inmobiliaria_airbnb.Controllers
                 else
                 {
                     TempData["Error"] = "Las claves nuevas no coinciden";
-                    return RedirectToAction(nameof(Edit));
+                    return RedirectToAction(nameof(Edit), new { id = IdPropietario });
                 }
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, "Error en CambiarPass de Propietarios");
                 TempData["Error"] = "Error al cambiar contraseña de propietario";
-                throw;
+                return RedirectToAction(nameof(Edit), new { id = IdPropietario });
             }
         }
     }

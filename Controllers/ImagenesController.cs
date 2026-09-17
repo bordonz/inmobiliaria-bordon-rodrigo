@@ -13,7 +13,8 @@ namespace inmobiliaria_airbnb.Controllers
 			this.repositorio = repositorio;
 		}
 		[HttpPost]
-		[Route("Imagenes/Alta/{id}")] 
+		[Route("Imagenes/Alta/{id}")]
+		[ValidateAntiForgeryToken]
 		[Authorize(Roles="Administrador")]
 		public async Task<IActionResult> Alta(int id, List<IFormFile> imagenes, [FromServices] IWebHostEnvironment environment)
 		{
@@ -61,7 +62,8 @@ namespace inmobiliaria_airbnb.Controllers
 		//TODO: La primera vez toma el id, la seguna vez no y 400
 		// POST: Inmueble/Eliminar/5
 		[HttpPost]
-		[Route("Imagenes/Eliminar/{id}")] 
+		[Route("Imagenes/Eliminar/{id}")]
+		[ValidateAntiForgeryToken]
 		[Authorize(Roles="Administrador")]
 		public ActionResult Eliminar(int id, [FromServices] IWebHostEnvironment environment)
 		{

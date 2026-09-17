@@ -65,6 +65,7 @@ namespace inmobiliaria_airbnb.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         [Authorize(Roles="Administrador")]
         public ActionResult Create(Inmueble i)
         {
@@ -78,7 +79,7 @@ namespace inmobiliaria_airbnb.Controllers
             {
                 logger.LogError(ex, "Error en Create de Inmuebles");
                 TempData["Error"] = "Error al crear inmueble";
-                throw;
+                return View(i);
             }
         }
 
@@ -102,6 +103,7 @@ namespace inmobiliaria_airbnb.Controllers
 
         //POST: Inmuebles/Edit
         [HttpPost]
+        [ValidateAntiForgeryToken]
         [Authorize(Roles="Administrador")]
         public ActionResult Edit(int id, Inmueble inmueble)
         {
@@ -157,8 +159,9 @@ namespace inmobiliaria_airbnb.Controllers
 
         //POST: Inmuebles/Delete
         [HttpPost]
+        [ValidateAntiForgeryToken]
         [Authorize(Roles="Administrador")]
-        public ActionResult Delete(int id, Inquilino entidad)
+        public ActionResult Delete(int id, Inmueble entidad)
         {
             try
             {
@@ -187,6 +190,7 @@ namespace inmobiliaria_airbnb.Controllers
 
 		// POST: Inmuebles/Portada
 		[HttpPost]
+        [ValidateAntiForgeryToken]
         [Authorize(Roles="Administrador")]
 		public ActionResult Portada(Imagen entidad, [FromServices] IWebHostEnvironment environment)
 		{

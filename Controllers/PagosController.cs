@@ -65,6 +65,7 @@ namespace inmobiliaria_airbnb.Controllers
 
         //POST: Pagos/Create
         [HttpPost]
+        [ValidateAntiForgeryToken]
         [Authorize(Roles="Empleado, Administrador")]
         public ActionResult Create(Pago p)
         {
@@ -105,12 +106,23 @@ namespace inmobiliaria_airbnb.Controllers
 
         //POST: Pagos/Edit
         [HttpPost]
+        [ValidateAntiForgeryToken]
         [Authorize(Roles="Empleado, Administrador")]
         public ActionResult Edit(int id, Pago pago)
         {
             try
             {
+                if (id != pago.IdPago)
+                {
+                    return NotFound();
+                }
+                
                 var p = repositorio.ObtenerPorId(id);
+                if (p == null)
+                {
+                    return NotFound();
+                }
+
                 p.Concepto = pago.Concepto;
                 repositorio.Modificacion(p);
                 TempData["Mensaje"] = "Concepto de pago editado exitosamente";
@@ -146,6 +158,7 @@ namespace inmobiliaria_airbnb.Controllers
 
         //POST: Pagos/Delete
         [HttpPost]
+        [ValidateAntiForgeryToken]
         [Authorize(Roles="Empleado, Administrador")]
         public ActionResult Delete(int id, Pago pago)
         {
