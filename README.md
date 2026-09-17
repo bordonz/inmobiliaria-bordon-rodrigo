@@ -42,5 +42,9 @@ dotnet add package MySql.Data
     http://localhost:PORT
 
 ## Usuario de prueba:
-Admin@gmail.com
-AdIn123
+- Administrador: 
+    Admin@gmail.com
+    AdIn123
+- Empleado:
+    Rodolfo@gmail.com
+    RoEz123
