@@ -39,6 +39,7 @@ namespace inmobiliaria_airbnb.Models
 			}
 			return res;
 		}
+
 		public int Baja(int id)
 		{
 			int res = -1;
@@ -63,13 +64,16 @@ namespace inmobiliaria_airbnb.Models
 			{
 				string sql = @"UPDATE Usuarios 
 					SET nombre=@nombre, apellido=@apellido, avatar=@avatar, email=@email, clave=@clave, rol=@rol
-					WHERE Id = @id";
+					WHERE id_usuario = @id";
 				using (MySqlCommand command = new MySqlCommand(sql, connection))
 				{
 					command.CommandType = CommandType.Text;
 					command.Parameters.AddWithValue("@nombre", e.Nombre);
 					command.Parameters.AddWithValue("@apellido", e.Apellido);
-					command.Parameters.AddWithValue("@avatar", String.IsNullOrEmpty(e.Avatar) ? DBNull.Value : e.Avatar);
+					if (String.IsNullOrEmpty(e.Avatar))
+						command.Parameters.AddWithValue("@avatar", DBNull.Value);
+					else
+                		command.Parameters.AddWithValue("@avatar", e.Avatar);
 					command.Parameters.AddWithValue("@email", e.Email);
 					command.Parameters.AddWithValue("@clave", e.Clave);
 					command.Parameters.AddWithValue("@rol", e.Rol);
