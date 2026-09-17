@@ -22,7 +22,8 @@ El proyecto utiliza el paquete oficial de MySQL para .NET:
 dotnet add package MySql.Data
 
 ## Si No tenes una base de datos
-- En la carpeta docs esta el script para la DB
+- Primero deberas crear tu base de datos.
+- Con la BD creada en la carpeta docs esta el script para las tablas e inserts.
 
 ## En el archivo appsettings.json configurar. Tomar como ejemplo appsettingsExample.json
 
@@ -30,7 +31,7 @@ dotnet add package MySql.Data
 - Cambiar el salt
 - Cambiar la SecretKey por una segura
 
-## Ejecución del proyecyto
+## Ejecución del proyecto
 - Clonar repositorio
     https://github.com/bordonz/inmobiliaria-bordon-rodrigo.git
 
@@ -39,3 +40,7 @@ dotnet add package MySql.Data
 
 - En el navegador que uses coloca la url: 
     http://localhost:PORT
+
+## Usuario de prueba:
+Admin@gmail.com
+AdIn123
