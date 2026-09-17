@@ -1,6 +1,7 @@
 using inmobiliaria_airbnb.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace inmobiliaria_airbnb.Controllers
 {
@@ -9,12 +10,14 @@ namespace inmobiliaria_airbnb.Controllers
         private readonly IRepositorioInmueble repositorio;
         private readonly IConfiguration config;
         private readonly ILogger<InmueblesController> logger;
+        private readonly IRepositorioTiposInmuebles repositorioTipos;
 
-        public InmueblesController(IRepositorioInmueble repo, IConfiguration config, ILogger<InmueblesController> logger)
+        public InmueblesController(IRepositorioInmueble repo, IConfiguration config, ILogger<InmueblesController> logger, IRepositorioTiposInmuebles repositorioTipos)
         {
             this.repositorio = repo;
             this.config = config;
             this.logger = logger;
+            this.repositorioTipos = repositorioTipos;
         }
 
         //GET: Inmuebles/index
@@ -49,6 +52,9 @@ namespace inmobiliaria_airbnb.Controllers
         {
             try
             {
+                var tipos = repositorioTipos.ObtenerTodos();
+                ViewBag.Tipos = new SelectList(tipos, "Descripcion", "Descripcion");
+
                 return View();
             }
             catch (Exception ex)
@@ -83,6 +89,8 @@ namespace inmobiliaria_airbnb.Controllers
             try
             {
                 var entidad = repositorio.ObtenerPorId(id);
+                var tipos = repositorioTipos.ObtenerTodos();
+                ViewBag.Tipos = new SelectList(tipos, "Descripcion", "Descripcion", entidad.Tipo);
                 return View(entidad);
             }
             catch (Exception ex)
@@ -99,20 +107,26 @@ namespace inmobiliaria_airbnb.Controllers
         {
             try
             {
-                var i = repositorio.ObtenerPorId(id);
-                if(i == null)
+                if (!ModelState.IsValid)
                 {
-                    return NotFound();
+                    var tipos = repositorioTipos.ObtenerTodos();
+                    ViewBag.Tipos = new SelectList(tipos, "Descripcion", "Descripcion", inmueble.Tipo);
+                    return View(inmueble);
                 }
+
+                var i = repositorio.ObtenerPorId(id);
+                if (i == null) return NotFound();
+
                 i.Direccion = inmueble.Direccion;
                 i.Cupo = inmueble.Cupo;
                 i.PrecioPorDia = inmueble.PrecioPorDia;
                 i.PorcentajeReserva = inmueble.PorcentajeReserva;
                 i.Latitud = inmueble.Latitud;
                 i.Longitud = inmueble.Longitud;
-                i.Tipo = inmueble.Tipo;
+                i.Tipo = inmueble.Tipo; // acá guardás el string elegido
                 i.PropietarioId = inmueble.PropietarioId;
                 i.Habilitado = inmueble.Habilitado;
+
                 repositorio.Modificacion(i);
                 TempData["Mensaje"] = "Inmueble editado exitosamente";
                 return RedirectToAction(nameof(Index));

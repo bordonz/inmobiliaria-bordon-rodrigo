@@ -448,9 +448,8 @@ namespace inmobiliaria_airbnb.Models
                         SELECT 1
                         FROM Reservas r
                         WHERE r.inmueble_id = i.id_inmueble
-                            AND r.fecha_desde <= @fechaHasta
-                            AND r.fecha_hasta >= @fechaDesde
-                            AND r.estado = 'Confirmada'
+                            AND r.fecha_desde < @fechaHasta
+                            AND r.fecha_hasta > @fechaDesde
                     )
                     ORDER BY i.id_inmueble
                     LIMIT @tamPagina OFFSET @offset;";

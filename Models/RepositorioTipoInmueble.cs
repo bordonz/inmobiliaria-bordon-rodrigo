@@ -149,5 +149,35 @@ namespace inmobiliaria_airbnb.Models
 			}
 			return t;
 		}
+
+		public List<TipoInmueble> ObtenerTodos()
+		{
+			var lista = new List<TipoInmueble>();
+
+			using (MySqlConnection connection = new MySqlConnection(connectionString))
+			{
+				string sql = @"SELECT id_tipo_inmueble, descripcion 
+							FROM Tipos_inmueble
+							ORDER BY descripcion ASC";
+
+				using (MySqlCommand command = new MySqlCommand(sql, connection))
+				{
+					connection.Open();
+					var reader = command.ExecuteReader();
+
+					while (reader.Read())
+					{
+						var tipo = new TipoInmueble
+						{
+							IdTipoInmueble = reader.GetInt32("id_tipo_inmueble"),
+							Descripcion = reader.GetString("descripcion")
+						};
+						lista.Add(tipo);
+					}
+				}
+			}
+
+			return lista;
+		}
     }
 }
