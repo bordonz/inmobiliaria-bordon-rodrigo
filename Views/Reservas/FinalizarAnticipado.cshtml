@@ -1,0 +1,21 @@
+@model inmobiliaria_airbnb.Models.Reserva
+
+@{
+    ViewData["Title"] = "Finalizar Reserva";
+}
+
+<h1>Finalizar Reserva</h1>
+
+<h3>Finalización anticipada</h3>
+<p>Reserva: @ViewBag.Reserva.IdReserva</p>
+<p>Fecha original fin: @ViewBag.Reserva.FechaHasta</p>
+<p>Multa calculada: $@ViewBag.Multa</p>
+
+<form asp-action="RegistrarPagoMulta" method="post">
+    <input type="hidden" name="reservaId" value="@ViewBag.Reserva.IdReserva" />
+
+    <label for="fechaSeleccionada">Fecha de terminación anticipada:</label>
+    <input type="date" id="fechaSeleccionada" name="fechaSeleccionada" required />
+
+    <button type="submit" class="btn btn-success">Registrar pago de multa</button>
+</form>

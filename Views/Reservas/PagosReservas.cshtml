@@ -1,11 +1,11 @@
 @model IEnumerable<inmobiliaria_airbnb.Models.Reserva>
 
 @{
-    ViewData["title"] = "Reservas";
+    ViewData["title"] = "Pagos por reserva";
 }
 
 <h1>
-	Inmuebles
+	Pagos por reserva
 	<div class="btn-group pull-right">
 		<a class="btn btn-primary" asp-action="Create" title="Crear">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clipboard-plus-fill" viewBox="0 0 16 16">
@@ -32,6 +32,9 @@
 			</th>
 			<th>
 				@Html.DisplayNameFor(model => model.FechaHasta)
+			</th>
+			<th>
+				@Html.DisplayNameFor(model => model.FechaAnticipada)
 			</th>
 			<th>
 				@Html.DisplayNameFor(model => model.InmuebleId)
@@ -80,6 +83,9 @@
 				</td>
 				<td>
 					@Html.DisplayFor(modelItem => item.FechaHasta)
+				</td>
+				<td>
+					@Html.DisplayFor(modelItem => item.FechaAnticipada)
 				</td>
 				<td>
 					@Html.DisplayFor(modelItem => item.InmuebleId)

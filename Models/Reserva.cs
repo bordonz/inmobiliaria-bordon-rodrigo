@@ -38,5 +38,8 @@ namespace inmobiliaria_airbnb.Models
 
         public Usuario? UsuarioCreador { get; set; }
         public Usuario? UsuarioFinalizador { get; set; }
+
+        [Display(Name = "Fecha de cancelación")]
+        public DateTime? FechaAnticipada { get; set; }
     }
 }

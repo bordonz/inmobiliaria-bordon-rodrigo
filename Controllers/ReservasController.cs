@@ -10,18 +10,20 @@ namespace inmobiliaria_airbnb.Controllers
         private readonly IRepositorioReserva repositorio;
         private readonly IConfiguration config;
         private readonly ILogger<ReservasController> logger;
-
-        public ReservasController(IRepositorioReserva repo, IConfiguration config, ILogger<ReservasController> logger)
+        private readonly IRepositorioPago repositorioPago;
+        
+        public ReservasController(IRepositorioReserva repo, IConfiguration config, ILogger<ReservasController> logger, IRepositorioPago repositorioPago)
         {
             this.repositorio = repo;
             this.config = config;
             this.logger = logger;
+            this.repositorioPago = repositorioPago;
         }
 
-    //GET: Reservas/index
-    [Authorize(Roles="Empleado, Administrador")]
-    public ActionResult Index(int pagina = 1)
-        {
+        //GET: Reservas/index
+        [Authorize(Roles="Empleado, Administrador")]
+        public ActionResult Index(int pagina = 1)
+            {
             try
             {
                 var tamaño = 5;
@@ -287,6 +289,48 @@ namespace inmobiliaria_airbnb.Controllers
             };
 
             return View("Create", nueva);
-                }
+        }
+
+        [Authorize(Roles="Empleado, Administrador")]
+        public IActionResult FinalizarAnticipado(int id)
+        {
+            var reserva = repositorio.ObtenerPorId(id);
+
+            int diasTotales = (reserva.FechaHasta - reserva.FechaDesde).Days;
+            int diasRestantes = (reserva.FechaHasta - DateTime.Today).Days;
+            decimal montoRestante = reserva.Monto * diasRestantes;
+
+            decimal multa = (diasRestantes > diasTotales / 2)
+                ? montoRestante * 0.5m
+                : montoRestante * 0.25m;
+
+            ViewBag.Reserva = reserva;
+            ViewBag.FechaTerminacion = DateTime.Today;
+            ViewBag.Multa = multa;
+
+            return View();
+        }
+
+        [HttpPost]
+        [Authorize(Roles="Empleado, Administrador")]
+        public IActionResult RegistrarPagoMulta(int reservaId, DateTime fechaSeleccionada)
+        {
+            var reserva = repositorio.ObtenerPorId(reservaId);
+
+            // Actualizar fecha de terminación anticipada
+            reserva.FechaAnticipada = fechaSeleccionada;
+            repositorio.EditFechaAnticipada(reserva);
+
+            // Actualizar concepto del pago
+            var pago = repositorioPago.ObtenerPorId(reserva.IdReserva);
+            if (pago != null)
+            {
+                pago.Concepto = "Multa por terminación anticipada";
+                repositorioPago.Modificacion(pago);
+            }
+
+            TempData["Mensaje"] = "Reserva finalizada anticipadamente y pago actualizado.";
+            return RedirectToAction("Index");
+        }
     }
 }

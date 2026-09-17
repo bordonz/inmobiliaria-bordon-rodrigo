@@ -5,7 +5,7 @@
 }
 
 <h1>
-	Inmuebles
+	Reservas
 	<div class="btn-group pull-right">
 		<a class="btn btn-primary" asp-action="Create" title="Crear">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clipboard-plus-fill" viewBox="0 0 16 16">
@@ -32,6 +32,9 @@
 			</th>
 			<th>
 				@Html.DisplayNameFor(model => model.FechaHasta)
+			</th>
+			<th>
+				@Html.DisplayNameFor(model => model.FechaAnticipada)
 			</th>
 			<th>
 				@Html.DisplayNameFor(model => model.InmuebleId)
@@ -73,6 +76,9 @@
 					@Html.DisplayFor(modelItem => item.FechaHasta)
 				</td>
 				<td>
+					@Html.DisplayFor(modelItem => item.FechaAnticipada)
+				</td>
+				<td>
 					@Html.DisplayFor(modelItem => item.InmuebleId)
 				</td>
                 <td>
@@ -109,6 +115,17 @@
 								<path d="M6.641 11.671V8.843h1.57l1.498 2.828h1.314L9.377 8.665c.897-.3 1.427-1.106 1.427-2.1 0-1.37-.943-2.246-2.456-2.246H5.5v7.352zm0-3.75V5.277h1.57c.881 0 1.416.499 1.416 1.32 0 .84-.504 1.324-1.386 1.324z"/>
 							</svg>
 						</a>
+
+
+        				@if (item.FechaHasta > DateTime.Today)
+						{
+							<a class="btn btn-success" asp-action="FinalizarAnticipado" asp-controller="Reservas" asp-route-id="@item.IdReserva" asp-route-inquilinoId="@item.InquilinoId" 
+								asp-route-inmuebleId="@item.InmuebleId"  title="Finalizar anticipado">
+								<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-calendar-x-fill" viewBox="0 0 16 16">
+									<path d="M4 .5a.5.5 0 0 0-1 0V1H2a2 2 0 0 0-2 2v1h16V3a2 2 0 0 0-2-2h-1V.5a.5.5 0 0 0-1 0V1H4zM16 14V5H0v9a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2M6.854 8.146 8 9.293l1.146-1.147a.5.5 0 1 1 .708.708L8.707 10l1.147 1.146a.5.5 0 0 1-.708.708L8 10.707l-1.146 1.147a.5.5 0 0 1-.708-.708L7.293 10 6.146 8.854a.5.5 0 1 1 .708-.708"/>
+								</svg>
+							</a>
+						}
 						@if (User.IsInRole("Administrador"))
 						{
 							<a asp-action="Auditoria" class="btn btn-warning" asp-route-id="@item.IdReserva">Auditoría</a>
@@ -127,7 +144,6 @@
 								</svg>
 							</button>
 						}
-						
 					</div>
 				</td>
 			</tr>
@@ -197,6 +213,7 @@
 							<td>${reserva.monto}</td>
 							<td>${reserva.fechaDesde}</td>
 							<td>${reserva.fechaHasta}</td>
+							<td>${reserva.fechaAnticipada}</td>
 							<td>${reserva.inmuebleId}</td>
 							<td>${reserva.inmueble.duenio.nombre}</td>
 							<td>${reserva.inmueble.duenio.apellido}</td>

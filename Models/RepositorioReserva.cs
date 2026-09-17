@@ -10,15 +10,38 @@ namespace inmobiliaria_airbnb.Models
         }
         public int Alta(Reserva r)
         {
+            if (r.FechaDesde >= r.FechaHasta)
+                throw new Exception("La fecha de inicio debe ser anterior a la fecha de fin.");
+
             int res = -1;
             using (MySqlConnection connection = new MySqlConnection(connectionString))
             {
+                connection.Open();
+                string checkSql = @"SELECT COUNT(*) 
+                    FROM Reservas
+                    WHERE inmueble_id = @inmueble_id
+                    AND estado = 'Confirmada'
+                    AND (fecha_desde <= @fecha_desde AND fecha_hasta >= @fecha_hasta');
+";
+                using (MySqlCommand checkCommand = new MySqlCommand(checkSql, connection))
+                {
+                    checkCommand.Parameters.AddWithValue("@inmueble_id", r.InmuebleId);
+                    checkCommand.Parameters.AddWithValue("@fecha_desde", r.FechaDesde);
+                    checkCommand.Parameters.AddWithValue("@fecha_hasta", r.FechaHasta);
+
+                    int count = Convert.ToInt32(checkCommand.ExecuteScalar());
+                    if (count > 0)
+                    {
+                        throw new Exception("El inmueble ya está reservado en esas fechas.");
+                    }
+                }
+
                 string sql = @"INSERT INTO Reservas
-                    (estado, monto, fecha_desde, fecha_hasta, inmueble_id, inquilino_id,
-                    id_usuario_creador)
+                    (estado, monto, fecha_desde, fecha_hasta, inmueble_id, inquilino_id, id_usuario_creador)
                     VALUES (@estado, @monto, @fecha_desde, @fecha_hasta, @inmueble_id, @inquilino_id, @id_usuario_creador);
                     SELECT LAST_INSERT_ID();";
-                using (MySqlCommand command = new MySqlCommand(sql, connection))
+
+                using (var command = new MySqlCommand(sql, connection))
                 {
                     command.Parameters.AddWithValue("@estado", r.Estado);
                     command.Parameters.AddWithValue("@monto", r.Monto);
@@ -27,7 +50,7 @@ namespace inmobiliaria_airbnb.Models
                     command.Parameters.AddWithValue("@inmueble_id", r.InmuebleId);
                     command.Parameters.AddWithValue("@inquilino_id", r.InquilinoId);
                     command.Parameters.AddWithValue("@id_usuario_creador", r.IdUsuarioCreador);
-                    connection.Open();
+
                     res = Convert.ToInt32(command.ExecuteScalar());
                     r.IdReserva = res;
                 }
@@ -82,7 +105,7 @@ namespace inmobiliaria_airbnb.Models
             List<Reserva> res = new List<Reserva>();
             using (MySqlConnection connection = new MySqlConnection(connectionString))
             {
-                string sql = @"SELECT r.id_reserva, r.estado, r.monto, r.fecha_desde, r.fecha_hasta,
+                string sql = @"SELECT r.id_reserva, r.estado, r.monto, r.fecha_desde, r.fecha_hasta, r.fecha_anticipada,
                     r.inmueble_id, r.inquilino_id,
                     p.nombre AS propietario_nombre, p.apellido AS propietario_apellido, 
                     i.nombre AS inquilino_nombre, i.apellido AS inquilino_apellido, pa.id_pago,
@@ -112,6 +135,9 @@ namespace inmobiliaria_airbnb.Models
                             Monto = reader.GetDecimal("monto"),
                             FechaDesde = reader.GetDateTime("fecha_desde"),
                             FechaHasta = reader.GetDateTime("fecha_hasta"),
+                            FechaAnticipada = reader.IsDBNull(reader.GetOrdinal("fecha_anticipada"))
+                            ? (DateTime?)null
+                            : reader.GetDateTime("fecha_anticipada"),
                             InmuebleId = reader.GetInt32("inmueble_id"),
                             Inmueble = new Inmueble
                             {
@@ -149,7 +175,7 @@ namespace inmobiliaria_airbnb.Models
             using (MySqlConnection connection = new MySqlConnection(connectionString))
             {
                 string sql = @"SELECT r.id_reserva, r.estado, r.monto, r.fecha_desde, r.fecha_hasta,
-                    r.inmueble_id, r.inquilino_id,
+                    r.fecha_anticipada, r.inmueble_id, r.inquilino_id,
                     p.nombre AS propietario_nombre, p.apellido AS propietario_apellido, 
                     i.nombre AS inquilino_nombre, i.apellido AS inquilino_apellido, pa.id_pago,
                     IFNULL(pa.concepto, 'Sin concepto') AS concepto,
@@ -159,10 +185,11 @@ namespace inmobiliaria_airbnb.Models
                     INNER JOIN Inmuebles inm ON r.inmueble_id = inm.id_inmueble
                     INNER JOIN Propietarios p ON inm.propietario_id = p.id_propietario
                     INNER JOIN Inquilinos i ON r.inquilino_id = i.id_inquilino
-                    LEFT JOIN Pagos pa ON r.pago_id = pa.id_pago
+                    LEFT JOIN Pagos pa ON pa.reserva_id = r.id_reserva
                     WHERE r.id_reserva = @id
-                    ORDER BY r.id_reserva
+                    ORDER BY pa.id_pago
                     LIMIT @tamPagina OFFSET @offset";
+;
                 using (MySqlCommand command = new MySqlCommand(sql, connection))
                 {
                     command.Parameters.AddWithValue("@id", id);
@@ -180,6 +207,9 @@ namespace inmobiliaria_airbnb.Models
                             Monto = reader.GetDecimal("monto"),
                             FechaDesde = reader.GetDateTime("fecha_desde"),
                             FechaHasta = reader.GetDateTime("fecha_hasta"),
+                            FechaAnticipada = reader.IsDBNull(reader.GetOrdinal("fecha_anticipada"))
+                            ? (DateTime?)null
+                            : reader.GetDateTime("fecha_anticipada"),
                             InmuebleId = reader.GetInt32("inmueble_id"),
                             Inmueble = new Inmueble
                             {
@@ -256,7 +286,7 @@ namespace inmobiliaria_airbnb.Models
             Reserva? r = null;
             using (MySqlConnection connection = new MySqlConnection(connectionString))
             {
-                string sql = @"SELECT r.id_reserva, r.estado, r.monto, r.fecha_desde, r.fecha_hasta,
+                string sql = @"SELECT r.id_reserva, r.estado, r.monto, r.fecha_desde, r.fecha_hasta, r.fecha_anticipada,
                     r.inmueble_id, r.inquilino_id, r.id_usuario_creador, r.id_usuario_finalizador,
                     p.nombre AS propietario_nombre, p.apellido AS propietario_apellido, 
                     i.nombre AS inquilino_nombre, i.apellido AS inquilino_apellido, pa.concepto,
@@ -282,6 +312,9 @@ namespace inmobiliaria_airbnb.Models
                             Monto = reader.GetDecimal("monto"),
                             FechaDesde = reader.GetDateTime("fecha_desde"),
                             FechaHasta = reader.GetDateTime("fecha_hasta"),
+                            FechaAnticipada = reader.IsDBNull(reader.GetOrdinal("fecha_anticipada"))
+                            ? (DateTime?)null
+                            : reader.GetDateTime("fecha_anticipada"),
                             InmuebleId = reader.GetInt32("inmueble_id"),
                             IdUsuarioCreador = reader["id_usuario_creador"] == DBNull.Value 
                                 ? null : (int?)Convert.ToInt32(reader["id_usuario_creador"]),
@@ -326,7 +359,7 @@ namespace inmobiliaria_airbnb.Models
             List<Reserva> res = new List<Reserva>();
             using (MySqlConnection connection = new MySqlConnection(connectionString))
             {
-                string sql = @"SELECT r.id_reserva, r.estado, r.monto, r.fecha_desde, r.fecha_hasta,
+                string sql = @"SELECT r.id_reserva, r.estado, r.monto, r.fecha_desde, r.fecha_hasta, r.fecha_anticipada,
                     r.inmueble_id, r.inquilino_id,
                     p.nombre AS propietario_nombre, p.apellido AS propietario_apellido, 
                     i.nombre AS inquilino_nombre, i.apellido AS inquilino_apellido, pa.id_pago, pa.concepto,
@@ -359,6 +392,9 @@ namespace inmobiliaria_airbnb.Models
                             Monto = reader.GetDecimal("monto"),
                             FechaDesde = reader.GetDateTime("fecha_desde"),
                             FechaHasta = reader.GetDateTime("fecha_hasta"),
+                            FechaAnticipada = reader.IsDBNull(reader.GetOrdinal("fecha_anticipada"))
+                            ? (DateTime?)null
+                            : reader.GetDateTime("fecha_anticipada"),
                             InmuebleId = reader.GetInt32("inmueble_id"),
                             Inmueble = new Inmueble
                             {
@@ -394,7 +430,7 @@ namespace inmobiliaria_airbnb.Models
             using (MySqlConnection connection = new MySqlConnection(connectionString))
             {
                 var fechaLimite = DateTime.Today.AddDays(dias);
-                string sql = @"SELECT r.id_reserva, r.estado, r.monto, r.fecha_desde, r.fecha_hasta,
+                string sql = @"SELECT r.id_reserva, r.estado, r.monto, r.fecha_desde, r.fecha_hasta, r.fecha_anticipada,
                     r.inmueble_id, r.inquilino_id,
                     p.nombre AS propietario_nombre, p.apellido AS propietario_apellido, 
                     i.nombre AS inquilino_nombre, i.apellido AS inquilino_apellido, pa.id_pago, pa.concepto,
@@ -427,6 +463,9 @@ namespace inmobiliaria_airbnb.Models
                             Monto = reader.GetDecimal("monto"),
                             FechaDesde = reader.GetDateTime("fecha_desde"),
                             FechaHasta = reader.GetDateTime("fecha_hasta"),
+                            FechaAnticipada = reader.IsDBNull(reader.GetOrdinal("fecha_anticipada"))
+                            ? (DateTime?)null
+                            : reader.GetDateTime("fecha_anticipada"),
                             InmuebleId = reader.GetInt32("inmueble_id"),
                             Inmueble = new Inmueble
                             {
@@ -451,6 +490,25 @@ namespace inmobiliaria_airbnb.Models
                         };
                         res.Add(r);
                     }
+                }
+            }
+            return res;
+        }
+
+        public int EditFechaAnticipada(Reserva r)
+        {
+            int res = -1;
+            using (MySqlConnection connection = new MySqlConnection(connectionString))
+            {
+                string sql = @"UPDATE Reservas
+                    SET fecha_anticipada=@FechaAnticipada
+                    WHERE id_reserva = @id";
+                using (MySqlCommand command = new MySqlCommand(sql, connection))
+                {
+                    command.Parameters.AddWithValue("@FechaAnticipada", r.FechaAnticipada);
+                    command.Parameters.AddWithValue("@id", r.IdReserva);
+                    connection.Open();
+                    res = command.ExecuteNonQuery();
                 }
             }
             return res;

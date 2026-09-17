@@ -12,5 +12,6 @@ namespace inmobiliaria_airbnb.Models
         List<Reserva> ObtenerPagos(int id, int paginaNro, int tamPagina);
 
         int ObtenerCantidadPagos(int id);
+        int EditFechaAnticipada(Reserva r);
     }
 }
