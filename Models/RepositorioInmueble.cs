@@ -16,9 +16,10 @@ namespace inmobiliaria_airbnb.Models
             int res = -1;
             using (var connection = new MySqlConnection(connectionString))
             {
+                //TODO: En la query y AddWithValue no coincide el orden
                 string sql = @"INSERT INTO Inmuebles
-                    (direccion, cupo, precio_por_dia, porcentaje_reserva, latitud, longitud, tipo, habilitado,propietario_id)
-                    VALUES (@direccion, @cupo, @precio_por_dia, @porcentaje_reserva, @latitud, @longitud, @tipo, @propietario_id, @habilitado);
+                    (direccion, cupo, precio_por_dia, porcentaje_reserva, latitud, longitud, propietario_id, habilitado, tipo)
+                    VALUES (@direccion, @cupo, @precio_por_dia, @porcentaje_reserva, @latitud, @longitud, @propietario_id, @habilitado, @tipo);
                     SELECT LAST_INSERT_ID();";
 
                 using (var command = new MySqlCommand(sql, connection))
@@ -30,9 +31,9 @@ namespace inmobiliaria_airbnb.Models
                     command.Parameters.AddWithValue("@porcentaje_reserva", i.PorcentajeReserva);
                     command.Parameters.AddWithValue("@latitud", i.Latitud);
                     command.Parameters.AddWithValue("@longitud", i.Longitud);
-                    command.Parameters.AddWithValue("@tipo", i.Tipo);
                     command.Parameters.AddWithValue("@propietario_id", i.PropietarioId);
                     command.Parameters.AddWithValue("@habilitado", i.Habilitado);
+                    command.Parameters.AddWithValue("@tipo", i.Tipo);
                     connection.Open();
                     res = Convert.ToInt32(command.ExecuteScalar());
                     i.IdInmueble = res;
