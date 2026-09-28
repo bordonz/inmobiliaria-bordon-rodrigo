@@ -13,5 +13,9 @@ namespace inmobiliaria_airbnb.Models
 
         int ObtenerCantidadPagos(int id);
         int EditFechaAnticipada(Reserva r);
+
+        public List<Inmueble> BuscarInmueble(string nombre);
+
+        public List<Inquilino> BuscarInquilino(string nombre);
     }
 }

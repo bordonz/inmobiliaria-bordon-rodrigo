@@ -46,7 +46,7 @@ namespace inmobiliaria_airbnb.Controllers
 
         //GET: Pagos/Create
         [Authorize(Roles="Empleado, Administrador")]
-        public ActionResult Create()
+        public ActionResult Create(int? id)
         {
             try
             {
@@ -54,7 +54,13 @@ namespace inmobiliaria_airbnb.Controllers
                 {
                     ViewBag.Mensaje = TempData["Error"];
                 }
-                return View();
+                var pago = new Pago();
+
+                if (id.HasValue && id.Value > 0)
+                {
+                    pago.ReservaId = id.Value;
+                }
+                return View(pago);
             }
             catch (Exception ex)
             {

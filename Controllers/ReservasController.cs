@@ -11,13 +11,18 @@ namespace inmobiliaria_airbnb.Controllers
         private readonly IConfiguration config;
         private readonly ILogger<ReservasController> logger;
         private readonly IRepositorioPago repositorioPago;
+        private readonly IRepositorioInquilino repositorioInquilino;
+        private readonly IRepositorioInmueble repositorioInmueble;
         
-        public ReservasController(IRepositorioReserva repo, IConfiguration config, ILogger<ReservasController> logger, IRepositorioPago repositorioPago)
+        public ReservasController(IRepositorioReserva repo, IConfiguration config, ILogger<ReservasController> logger, IRepositorioPago repositorioPago,
+            IRepositorioInquilino repositorioInquilino, IRepositorioInmueble repositorioInmueble)
         {
             this.repositorio = repo;
             this.config = config;
             this.logger = logger;
             this.repositorioPago = repositorioPago;
+            this.repositorioInquilino = repositorioInquilino;
+            this.repositorioInmueble = repositorioInmueble;
         }
 
         //GET: Reservas/index
@@ -294,6 +299,8 @@ namespace inmobiliaria_airbnb.Controllers
             {
                 InquilinoId = reserva.InquilinoId,
                 InmuebleId = reserva.InmuebleId,
+                Inquilino = reserva.Inquilino ?? repositorioInquilino.ObtenerPorId(reserva.InquilinoId),
+                Inmueble = reserva.Inmueble ?? repositorioInmueble.ObtenerPorId(reserva.InmuebleId)
             };
 
             return View("Create", nueva);
@@ -354,6 +361,36 @@ namespace inmobiliaria_airbnb.Controllers
                 logger.LogError(ex, "Error en RegistrarPagoMulta");
                 TempData["Error"] = "Error al registrar pago de multa";
                 return RedirectToAction(nameof(Index));
+            }
+        }
+
+        //GET: Reservas/Buscar/5
+        [Route("[controller]/BuscarInmueble/{q}", Name = "BuscarImueble")]
+        public IActionResult BuscarInmueble(string q)
+        {
+            try
+            {
+                var res = repositorio.BuscarInmueble(q);
+                return Json( new { datos = res });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { error = ex.Message });
+            }
+        }
+
+        //GET: Propietarios/Buscar/5
+        [Route("[controller]/BuscarInquilino/{q}", Name = "BuscarInquilino")]
+        public IActionResult BuscarInquilino(string q)
+        {
+            try
+            {
+                var res = repositorio.BuscarInquilino(q);
+                return Json( new { datos = res });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { error = ex.Message });
             }
         }
     }

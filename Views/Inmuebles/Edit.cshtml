@@ -48,10 +48,18 @@
 					new { @class = "form-control" })
 				<span asp-validation-for="Tipo" class="text-danger"></span>
 			</div>
-            <div class="form-group">
-				<label asp-for="PropietarioId" class="control-label"></label>
-				<input asp-for="PropietarioId" class="form-control" />
-				<span asp-validation-for="PropietarioId" class="text-danger"></span>
+           <div class="form-group">
+				<label class="control-label">Propietario</label>
+				<select id="Propietario" class="form-control" name="PropietarioId">
+					@if (Model?.PropietarioId > 0)
+					{
+						<option value="@Model.PropietarioId" selected>
+							@(Model.Duenio != null 
+								? $"{Model.Duenio.Nombre} {Model.Duenio.Apellido}" 
+								: $"Propietario #{Model.PropietarioId}")
+						</option>
+					}
+				</select>
 			</div>
             <div class="form-group form-check">
 				<label asp-for="Habilitado" class="control-label"></label>
@@ -68,3 +76,31 @@
 <div>
 	<a asp-action="Index">Volver al listado</a>
 </div>
+
+@section Scripts {
+	<script type="text/javascript">
+		$(document).ready(function() {
+			$('#Propietario').select2({
+				language: "es",
+				theme: 'bootstrap4',  // Aplica el tema de Bootstrap
+				placeholder: "Buscar propietario...",
+				minimumInputLength: 3,// Realiza la búsqueda después de 3 caracteres
+				maximumInputLength: 10,// Limita la entrada a 10 caracteres
+				ajax: {
+					delay: 250,
+					dataType: "json",
+					cache: true,
+					url: function (params) {
+						let q = params.term ? encodeURIComponent(params.term) : "";
+						return `/Propietarios/Buscar/${q}`;
+					},
+					processResults: function (res) {
+						return {
+							results: res.datos.map(p => ({id: p.idPropietario, text: `${p.nombre} ${p.apellido}`}))
+						};
+					}
+				}
+			});
+		});
+	</script>
+}

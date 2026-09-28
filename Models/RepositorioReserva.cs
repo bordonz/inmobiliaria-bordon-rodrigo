@@ -1,3 +1,4 @@
+using System.Data;
 using MySql.Data.MySqlClient;
 
 namespace inmobiliaria_airbnb.Models
@@ -21,8 +22,7 @@ namespace inmobiliaria_airbnb.Models
                     FROM Reservas
                     WHERE inmueble_id = @inmueble_id
                     AND estado = 'Confirmada'
-                    AND (fecha_desde <= @fecha_desde AND fecha_hasta >= @fecha_hasta');
-";
+                    AND (fecha_desde <= @fecha_desde AND fecha_hasta >= @fecha_hasta);";
                 using (MySqlCommand checkCommand = new MySqlCommand(checkSql, connection))
                 {
                     checkCommand.Parameters.AddWithValue("@inmueble_id", r.InmuebleId);
@@ -105,24 +105,27 @@ namespace inmobiliaria_airbnb.Models
             List<Reserva> res = new List<Reserva>();
             using (MySqlConnection connection = new MySqlConnection(connectionString))
             {
+                // 1. Agregamos las columnas inm.direccion e inm.tipo en la consulta
                 string sql = @"SELECT r.id_reserva, r.estado, r.monto, r.fecha_desde, r.fecha_hasta, r.fecha_anticipada,
-                    r.inmueble_id, r.inquilino_id,
+                    r.inmueble_id, r.inquilino_id, 
+                    inm.direccion AS inmueble_direccion, inm.tipo AS inmueble_tipo,
                     p.nombre AS propietario_nombre, p.apellido AS propietario_apellido, 
                     i.nombre AS inquilino_nombre, i.apellido AS inquilino_apellido, pa.id_pago,
                     IFNULL(pa.concepto, 'Sin concepto') AS concepto,
                     IFNULL(pa.fecha_pago, '1970-01-01') AS fecha_pago,
                     IFNULL(pa.monto, 0) AS monto_pago
                     FROM Reservas r
-                    INNER JOIN Inmuebles inm ON r.inmueble_id = inm.id_inmueble
+                    INNER JOIN Inmuebles inm ON r.inmueble_id = inm.id_inmueble 
                     INNER JOIN Propietarios p ON inm.propietario_id = p.id_propietario
                     INNER JOIN Inquilinos i ON r.inquilino_id = i.id_inquilino
                     LEFT JOIN Pagos pa ON r.pago_id = pa.id_pago
                     ORDER BY r.id_reserva
                     LIMIT @tamPagina OFFSET @offset";
+
                 using (MySqlCommand command = new MySqlCommand(sql, connection))
                 {
                     command.Parameters.AddWithValue("@tamPagina", tamPagina);
-                    command.Parameters.AddWithValue("@offset", (paginaNro -1) * tamPagina);
+                    command.Parameters.AddWithValue("@offset", (paginaNro - 1) * tamPagina);
                     connection.Open();
                     var reader = command.ExecuteReader();
 
@@ -136,31 +139,39 @@ namespace inmobiliaria_airbnb.Models
                             FechaDesde = reader.GetDateTime("fecha_desde"),
                             FechaHasta = reader.GetDateTime("fecha_hasta"),
                             FechaAnticipada = reader.IsDBNull(reader.GetOrdinal("fecha_anticipada"))
-                            ? (DateTime?)null
-                            : reader.GetDateTime("fecha_anticipada"),
+                                ? (DateTime?)null
+                                : reader.GetDateTime("fecha_anticipada"),
                             InmuebleId = reader.GetInt32("inmueble_id"),
+                            
+                            // 2. Mapeamos las columnas leídas al objeto Inmueble
                             Inmueble = new Inmueble
                             {
+                                IdInmueble = reader.GetInt32("inmueble_id"),
+                                Direccion = reader.GetString("inmueble_direccion"),
+                                Tipo = reader.GetString("inmueble_tipo"),
                                 Duenio = new Propietario
                                 {
                                     Nombre = reader.GetString("propietario_nombre"),
                                     Apellido = reader.GetString("propietario_apellido")
                                 }
                             },
+                            
                             InquilinoId = reader.GetInt32("inquilino_id"),
                             Inquilino = new Inquilino
                             {
+                                IdInquilino = reader.GetInt32("inquilino_id"),
                                 Nombre = reader.GetString("inquilino_nombre"),
                                 Apellido = reader.GetString("inquilino_apellido")
                             },
                             Pago = reader.IsDBNull(reader.GetOrdinal("id_pago"))
-                            ? null
-                            : new Pago
-                            {
-                                Concepto = reader.GetString("concepto"),
-                                FechaPago = reader.GetDateTime("fecha_pago"),
-                                Monto = reader.GetDecimal("monto_pago")
-                            }
+                                ? null
+                                : new Pago
+                                {
+                                    IdPago = reader.GetInt32("id_pago"),
+                                    Concepto = reader.GetString("concepto"),
+                                    FechaPago = reader.GetDateTime("fecha_pago"),
+                                    Monto = reader.GetDecimal("monto_pago")
+                                }
                         };
                         res.Add(r);
                     }
@@ -509,6 +520,68 @@ namespace inmobiliaria_airbnb.Models
                     command.Parameters.AddWithValue("@id", r.IdReserva);
                     connection.Open();
                     res = command.ExecuteNonQuery();
+                }
+            }
+            return res;
+        }
+
+        public List<Inmueble> BuscarInmueble(string nombre)
+        {
+            List<Inmueble> res = new List<Inmueble>();
+            nombre = "%" + nombre + "%"; //TODO: Optimizar
+            using (MySqlConnection connection = new MySqlConnection(connectionString))
+            {
+                string sql = @"SELECT i.*
+                    FROM Inmuebles i
+                    WHERE i.direccion LIKE @nombre OR i.tipo LIKE @nombre";
+                using (MySqlCommand command = new MySqlCommand(sql, connection))
+                {
+                    command.Parameters.Add("@nombre", MySqlDbType.VarChar).Value = nombre;;
+                    command.CommandType = CommandType.Text;
+                    connection.Open();
+                    var reader = command.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        var inm = new Inmueble
+                        {    
+                            IdInmueble = reader.GetInt32("id_inmueble"),
+                            Direccion = reader.GetString("direccion"),
+                            Tipo = reader.GetString("tipo")
+                        };
+                        res.Add(inm);
+                    }
+                    connection.Close();
+                }
+            }
+            return res;
+        }
+
+        public List<Inquilino> BuscarInquilino(string nombre)
+        {
+            List<Inquilino> res = new List<Inquilino>();
+            nombre = "%" + nombre + "%"; //TODO: Optimizar
+            using (MySqlConnection connection = new MySqlConnection(connectionString))
+            {
+                string sql = @"SELECT inq.*
+                    FROM Inquilinos inq
+                    WHERE inq.nombre LIKE @nombre OR inq.apellido LIKE @nombre";
+                using (MySqlCommand command = new MySqlCommand(sql, connection))
+                {
+                    command.Parameters.Add("@nombre", MySqlDbType.VarChar).Value = nombre;;
+                    command.CommandType = CommandType.Text;
+                    connection.Open();
+                    var reader = command.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        var i = new Inquilino
+                        {    
+                            IdInquilino = reader.GetInt32("id_inquilino"),
+                            Nombre = reader.GetString("nombre"),
+                            Apellido = reader.GetString("apellido")
+                        };
+                        res.Add(i);
+                    }
+                    connection.Close();
                 }
             }
             return res;

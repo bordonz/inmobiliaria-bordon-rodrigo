@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="~/css/propietarioCreate.css"/>
 }
 
-<h4>Nueva reserva</h4>
+<h4>Reserva</h4>
 <hr />
 <div class="row">
 	<div class="col-md-4">
@@ -39,14 +39,16 @@
 				<span asp-validation-for="FechaHasta" class="text-danger"></span>
 			</div>
 			<div class="form-group">
-				<label asp-for="InmuebleId" class="control-label"></label>
-				<input asp-for="InmuebleId" class="form-control" />
-				<span asp-validation-for="InmuebleId" class="text-danger"></span>
+				<label class="control-label">Inmueble</label>
+				<select id="Inmueble" class="form-control" name="InmuebleId">
+					<option value="@Model?.InmuebleId" selected>@Model?.Inmueble?.Direccion @Model?.Inmueble?.Tipo</option>
+				</select>
 			</div>
 			<div class="form-group">
-				<label asp-for="InquilinoId" class="control-label"></label>
-				<input asp-for="InquilinoId" class="form-control" />
-				<span asp-validation-for="InquilinoId" class="text-danger"></span>
+				<label class="control-label">Inquilino</label>
+				<select id="Inquilino" class="form-control" name="InquilinoId">
+					<option value="@Model?.InquilinoId" selected>@Model?.Inquilino?.Nombre @Model?.Inquilino?.Apellido</option>
+				</select>
 			</div>
 			<div class="form-group">
 				<input type="submit" value="Create" class="btn btn-primary" />
@@ -58,3 +60,52 @@
 <div>
 	<a asp-action="Index">Volver a la Lista</a>
 </div>
+
+@section Scripts {
+	<script type="text/javascript">
+		$(document).ready(function() {
+			$('#Inmueble').select2({
+				language: "es",
+				theme: 'bootstrap4',
+				placeholder: "Buscar inmueble por direccion o tipo",
+				minimumInputLength: 3,
+				maximumInputLength: 10,
+				ajax: {
+					delay: 250,
+					dataType: "json",
+					cache: true,
+					url: function (params) {
+						let q = params.term ? encodeURIComponent(params.term) : "";
+						return `/Reservas/BuscarInmueble/${q}`;
+					},
+					processResults: function (res) {
+						return {
+							results: res.datos.map(i => ({id: i.idInmueble, text: `${i.direccion} ${i.tipo}`}))
+						};
+					}
+				}
+			});
+
+			$('#Inquilino').select2({
+				language: "es",
+				theme: 'bootstrap4',
+				placeholder: "Buscar inquilino por nombre o apellido",
+				minimumInputLength: 3,
+				ajax: {
+					delay: 250,
+					dataType: "json",
+					cache: true,
+					url: function (params) {
+						let q = params.term ? encodeURIComponent(params.term) : "";
+						return `/Reservas/BuscarInquilino/${q}`;
+					},
+					processResults: function (res) {
+						return {
+							results: res.datos.map(inq => ({id: inq.idInquilino, text: `${inq.nombre} ${inq.apellido}`}))
+						};
+					}
+				}
+			});
+		});
+	</script>
+}
