@@ -15,13 +15,13 @@ namespace inmobiliaria_airbnb.Models
 		[Key]
 		[Display(Name = "Código")]
 		public int IdUsuario { get; set; }
-		[Required]
+		//[Required]
 		public string Nombre { get; set; } = "";
-		[Required]
+		//[Required]
 		public string Apellido { get; set; } = "";
-		[Required, EmailAddress]
+		//[Required, EmailAddress]
 		public string Email { get; set; } = "";
-		[Required, DataType(DataType.Password)]
+		//[Required, DataType(DataType.Password)]
 		public string Clave { get; set; } = "";
 		public string? Avatar { get; set; }
 		[NotMapped]//Para EF

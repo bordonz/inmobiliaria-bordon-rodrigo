@@ -6,5 +6,7 @@ namespace inmobiliaria_airbnb.Models
         public int ObtenerCantidad();
         Usuario? ObtenerPorId(int id);
         Usuario? ObtenerPorEmail(string email);
+
+        public int CambiarClave(int idUsuario, string nuevaClave);
     }
 }

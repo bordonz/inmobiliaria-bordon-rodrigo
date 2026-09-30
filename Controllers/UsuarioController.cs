@@ -68,8 +68,13 @@ namespace inmobiliaria_airbnb.Controllers
 		[Authorize(Policy = "Administrador")]
 		public ActionResult Create(Usuario u)
 		{
-			if (!ModelState.IsValid)
-				return View();
+			if (!ModelState.IsValid) 
+			{
+				ViewBag.Error = "Complete todos los campos requeridos correctamente.";
+				ViewBag.Roles = Usuario.ObtenerRoles();
+				return View(u);
+			}
+
 			try
 			{
 				string hashed = Convert.ToBase64String(KeyDerivation.Pbkdf2(
@@ -111,7 +116,7 @@ namespace inmobiliaria_airbnb.Controllers
 		}
 
 		// GET: Usuarios/Edit/5
-		[Authorize(Policy = "Empleado")]
+		[Authorize]
 		public ActionResult Perfil()
 		{
 			ViewData["Title"] = "Mi perfil";
@@ -150,7 +155,7 @@ namespace inmobiliaria_airbnb.Controllers
 				if (!ModelState.IsValid)
                 {
                     ViewBag.Roles = Usuario.ObtenerRoles();
-                    return View(vista, u);
+                    return View("Edit", u);
                 }
 
                 var usuarioE = repositorio.ObtenerPorId(id);
@@ -165,7 +170,7 @@ namespace inmobiliaria_airbnb.Controllers
                 usuarioE.Rol = u.Rol;
 
                 // Si subió avatar nuevo
-                if (u.AvatarFile != null)
+                if (u.AvatarFile != null && u.AvatarFile.Length > 0)
                 {
                     string wwwPath = environment.WebRootPath;
                     string path = Path.Combine(wwwPath, "Uploads");
@@ -183,13 +188,17 @@ namespace inmobiliaria_airbnb.Controllers
                 }
 
                 repositorio.Modificacion(usuarioE);
-                TempData["Mensaje"] = "Usuario editado correctamente";
-				return RedirectToAction(vista);
+                ViewBag.Mensaje = "Datos guardados correctamente.";
+				ViewBag.Roles = Usuario.ObtenerRoles();
+				
+				return View("Edit", usuarioE);
 			}
 			catch (Exception ex)
 			{
 				logger.LogError(ex, "Error al editar el usuario");
-				throw;
+				ViewBag.Error = "Ocurrió un error al guardar los cambios.";
+				ViewBag.Roles = Usuario.ObtenerRoles();
+				return View("Edit", u);
 			}
 		}
 
@@ -371,6 +380,104 @@ namespace inmobiliaria_airbnb.Controllers
 			await HttpContext.SignOutAsync(
 					CookieAuthenticationDefaults.AuthenticationScheme);
 			return RedirectToAction("Index", "Home");
+		}
+
+		// GET: Usuarios/CambiarClave/5
+		[Authorize]
+		public ActionResult CambiarClave(int id)
+		{
+			// Validar permisos: Si no es Admin y tampoco es su propio ID, no se permite.
+			if (!User.IsInRole("Administrador") && this.UsuarioId() != id)
+			{
+				return RedirectToAction(nameof(Index), "Home");
+			}
+
+			var usuario = repositorio.ObtenerPorId(id);
+			if (usuario == null)
+			{
+				return NotFound();
+			}
+
+			ViewData["Title"] = $"Cambiar contraseña de {usuario.Nombre} {usuario.Apellido}";
+			return View(usuario); // Pasamos la entidad Usuario directa
+		}
+
+		// POST: Usuarios/CambiarClave/5
+		[HttpPost]
+		[ValidateAntiForgeryToken]
+		[Authorize]
+		public ActionResult CambiarClave(int id, string? claveAntigua, string claveNueva, string confirmarClave)
+		{
+			bool esAdmin = User.IsInRole("Administrador");
+
+			// Verificar permisos sobre el usuario
+			if (!esAdmin && this.UsuarioId() != id)
+			{
+				return RedirectToAction(nameof(Index), "Home");
+			}
+
+			var usuarioBD = repositorio.ObtenerPorId(id);
+			if (usuarioBD == null)
+			{
+				return NotFound();
+			}
+
+			// Validar requeridos y coincidencia
+			if (string.IsNullOrEmpty(claveNueva))
+			{
+				ModelState.AddModelError("", "La nueva contraseña es requerida.");
+			}
+
+			if (claveNueva != confirmarClave)
+			{
+				ModelState.AddModelError("", "La nueva contraseña y la confirmación no coinciden.");
+			}
+
+			if (!esAdmin)
+			{
+				if (string.IsNullOrEmpty(claveAntigua))
+				{
+					ModelState.AddModelError("", "Debes ingresar tu contraseña actual.");
+				}
+				else
+				{
+					string claveAntiguaHashed = Convert.ToBase64String(KeyDerivation.Pbkdf2(
+						password: claveAntigua,
+						salt: System.Text.Encoding.ASCII.GetBytes(configuration["Salt"] ?? ""),
+						prf: KeyDerivationPrf.HMACSHA1,
+						iterationCount: 1000,
+						numBytesRequested: 256 / 8));
+
+					if (usuarioBD.Clave != claveAntiguaHashed)
+					{
+						ModelState.AddModelError("", "La contraseña actual es incorrecta.");
+					}
+				}
+			}
+
+			if (!ModelState.IsValid)
+			{
+				ViewData["Title"] = $"Cambiar contraseña de {usuarioBD.Nombre} {usuarioBD.Apellido}";
+				return View(usuarioBD);
+			}
+
+			// Hashear la nueva contraseña
+			string nuevaClaveHashed = Convert.ToBase64String(KeyDerivation.Pbkdf2(
+				password: claveNueva,
+				salt: System.Text.Encoding.ASCII.GetBytes(configuration["Salt"] ?? ""),
+				prf: KeyDerivationPrf.HMACSHA1,
+				iterationCount: 1000,
+				numBytesRequested: 256 / 8));
+
+			repositorio.CambiarClave(id, nuevaClaveHashed);
+
+			TempData["Mensaje"] = "Contraseña actualizada correctamente.";
+
+			if (esAdmin)
+			{
+				return RedirectToAction(nameof(Edit), new { id = id });
+			}
+			return RedirectToAction(nameof(Perfil));
 		}
 	}
 }

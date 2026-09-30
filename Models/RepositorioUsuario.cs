@@ -63,19 +63,15 @@ namespace inmobiliaria_airbnb.Models
 			using (MySqlConnection connection = new MySqlConnection(connectionString))
 			{
 				string sql = @"UPDATE Usuarios 
-					SET nombre=@nombre, apellido=@apellido, avatar=@avatar, email=@email, clave=@clave, rol=@rol
+					SET nombre=@nombre, apellido=@apellido, avatar=@avatar, email=@email, rol=@rol
 					WHERE id_usuario = @id";
 				using (MySqlCommand command = new MySqlCommand(sql, connection))
 				{
 					command.CommandType = CommandType.Text;
 					command.Parameters.AddWithValue("@nombre", e.Nombre);
 					command.Parameters.AddWithValue("@apellido", e.Apellido);
-					if (String.IsNullOrEmpty(e.Avatar))
-						command.Parameters.AddWithValue("@avatar", DBNull.Value);
-					else
-                		command.Parameters.AddWithValue("@avatar", e.Avatar);
+					command.Parameters.AddWithValue("@avatar", (object)e.Avatar ?? DBNull.Value);
 					command.Parameters.AddWithValue("@email", e.Email);
-					command.Parameters.AddWithValue("@clave", e.Clave);
 					command.Parameters.AddWithValue("@rol", e.Rol);
 					command.Parameters.AddWithValue("@id", e.IdUsuario);
 					connection.Open();
@@ -204,6 +200,27 @@ namespace inmobiliaria_airbnb.Models
 				}
 			}
 			return e;
+		}
+
+		public int CambiarClave(int idUsuario, string nuevaClave)
+		{
+			int res = -1;
+			using (MySqlConnection connection = new MySqlConnection(connectionString))
+			{
+				string sql = @"UPDATE Usuarios
+					SET clave = @clave
+					WHERE id_usuario = @id";
+				using (MySqlCommand command = new MySqlCommand(sql, connection))
+				{
+					command.Parameters.AddWithValue("@clave", nuevaClave);
+					command.Parameters.AddWithValue("@id", idUsuario);
+
+					connection.Open();
+					res = command.ExecuteNonQuery();
+					connection.Close();
+				}
+			}
+			return res;
 		}
 	}
 }
